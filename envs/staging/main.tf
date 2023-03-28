@@ -20,6 +20,12 @@ module "project_services" {
   source = "../../modules/project_services"
 }
 
+module "network" {
+  source      = "../../modules/network"
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
+}
+
 module "spanner" {
   source           = "../../modules/database/spanner"
   project          = local.project
@@ -33,4 +39,13 @@ module "spanner" {
     service = "hojingpt"
     source  = "spanner"
   }
+
+  depends_on = [module.project_services]
 }
+
+# module "redis" {
+#   source = "../../modules/cache/redis"
+#   name   = "hojingpt-${local.env}"
+
+#   depends_on = [module.project_services]
+# }
