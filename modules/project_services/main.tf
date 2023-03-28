@@ -4,6 +4,7 @@ variable "endpoints" {
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
     "spanner.googleapis.com",
+    "redis.googleapis.com",
   ]
 }
 
