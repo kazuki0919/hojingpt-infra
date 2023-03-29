@@ -5,6 +5,10 @@ variable "endpoints" {
     "compute.googleapis.com",
     "spanner.googleapis.com",
     "redis.googleapis.com",
+    "cloudfunctions.googleapis.com",
+    "appengine.googleapis.com",
+    "cloudscheduler.googleapis.com",
+    "cloudbuild.googleapis.com",
   ]
 }
 

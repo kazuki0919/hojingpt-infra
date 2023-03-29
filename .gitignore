@@ -3,3 +3,4 @@
 *.tfstate.lock.info
 .terraform/
 .envrc
+bin/
