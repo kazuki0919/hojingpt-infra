@@ -10,6 +10,9 @@ resource "google_redis_instance" "default" {
 
   redis_version = var.redis_version
 
+  replica_count      = var.replica_count
+  read_replicas_mode = var.read_replicas_mode
+
   labels = var.labels
 
   persistence_config {

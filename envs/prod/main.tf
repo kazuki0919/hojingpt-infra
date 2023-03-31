@@ -59,11 +59,13 @@ module "spanner" {
 # }
 
 module "redis" {
-  source      = "../../modules/cache/redis"
-  name        = "hojingpt-${local.env}"
-  tier        = "STANDARD_HA"
-  memory_size = 5
-  network_id  = module.network.default_network.id
+  source             = "../../modules/cache/redis"
+  name               = "hojingpt-${local.env}"
+  tier               = "STANDARD_HA"
+  memory_size        = 5
+  replica_count      = 1
+  read_replicas_mode = "READ_REPLICAS_ENABLED"
+  network_id         = module.network.default_network.id
 
   depends_on = [module.project_services]
 }

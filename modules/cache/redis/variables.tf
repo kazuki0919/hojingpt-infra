@@ -36,3 +36,13 @@ variable "labels" {
   type    = map(string)
   default = {}
 }
+
+variable "replica_count" {
+  type    = number
+  default = 0
+}
+
+variable "read_replicas_mode" {
+  type    = string
+  default = "READ_REPLICAS_DISABLED"
+}
