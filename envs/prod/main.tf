@@ -63,7 +63,7 @@ module "redis" {
   name        = "hojingpt-${local.env}"
   tier        = "STANDARD_HA"
   memory_size = 5
-  network_id  = module.network.default.id
+  network_id  = module.network.default_network.id
 
   depends_on = [module.project_services]
 }

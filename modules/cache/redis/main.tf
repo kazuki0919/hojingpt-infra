@@ -12,6 +12,11 @@ resource "google_redis_instance" "default" {
 
   labels = var.labels
 
+  persistence_config {
+    persistence_mode    = "RDB"
+    rdb_snapshot_period = "ONE_HOUR"
+  }
+
   maintenance_policy {
     # For UTC+9, it is 3:00AM on Monday.
     weekly_maintenance_window {
