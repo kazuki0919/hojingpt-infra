@@ -69,3 +69,13 @@ module "redis" {
 
   depends_on = [module.project_services]
 }
+
+# TODO
+# module "app" {
+#   source          = "../../modules/apps/cloudrun"
+#   project         = local.project
+#   name            = "hojingpt"
+#   location        = local.region
+#   connector_name  = module.network.default_vpc_access_connector.name
+#   container_image = "gcr.io/hojingpt-${local.env}/hojingpt"
+# }
