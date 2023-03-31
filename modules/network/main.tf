@@ -1,51 +1,76 @@
-variable "name" {
-  type = string
-}
-
-variable "name_suffix" {
-  type    = string
-  default = ""
-}
-
-# variable "project" {
-#   type = string
-# }
-
-# variable "descript" {
-#   type    = string
-#   default = ""
-# }
-
 resource "google_compute_network" "default" {
-  name                            = "${var.name}${var.name_suffix}"
-#   auto_create_subnetworks         = false
-#   routing_mode                    = var.routing_mode
-#   project                         = var.project
-#   description                     = var.description
-#   delete_default_routes_on_create = var.delete_default_internet_gateway_routes
-#   mtu                             = 1460
+  name                    = "${var.name}${var.name_suffix}"
+  auto_create_subnetworks = false
+  routing_mode            = "REGIONAL"
+  project                 = var.project
 }
 
-variable "public_cidr_range" {
-  default = "10.100.0.0/16"
-}
-
-variable "private_cidr_range" {
-  default = "10.101.0.0/16"
-}
-
-resource "google_compute_subnetwork" "public" {
-  name          = "${var.name}-public${var.name_suffix}"
-  ip_cidr_range = var.public_cidr_range
-  network       = google_compute_network.default.name
-
-  private_ip_google_access = false
-}
-
-resource "google_compute_subnetwork" "private" {
-  name          = "${var.name}-private${var.name_suffix}"
-  ip_cidr_range = var.private_cidr_range
-  network       = google_compute_network.default.name
-
+resource "google_compute_subnetwork" "default" {
+  name                     = "${var.name}-default${var.name_suffix}"
+  ip_cidr_range            = "10.100.0.0/16"
+  network                  = google_compute_network.default.name
   private_ip_google_access = true
 }
+
+resource "google_vpc_access_connector" "default" {
+  name           = var.project
+  region         = var.region
+  ip_cidr_range  = "10.8.0.0/28"
+  network        = google_compute_network.default.name
+  machine_type   = "e2-micro"
+  min_instances  = 2
+  max_instances  = 10
+  max_throughput = 1000
+}
+
+resource "google_compute_global_address" "default" {
+  name          = "hojingpt-default-staging"
+  address_type  = "INTERNAL"
+  purpose       = "VPC_PEERING"
+  network       = google_compute_network.default.id
+  address       = "10.200.0.0"
+  prefix_length = 16
+}
+
+resource "google_service_networking_connection" "default" {
+  network                 = google_compute_network.default.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.default.name]
+}
+
+# see: https://zenn.dev/btc4043/articles/5d9859d3226f7d
+
+# # Cloud Router (for asia-northeast1)
+# resource "google_compute_router" "default" {
+#   name    = "${var.name}${var.name_suffix}"
+#   region  = google_compute_subnetwork.default.region
+#   network = google_compute_network.default.id
+# }
+
+# # External ip for Cloud NAT
+# resource "google_compute_address" "nat_external_ipaddress" {
+#   name = "${var.name}-nat-external-ip${var.name_suffix}"
+# }
+
+# # Cloud NAT
+# resource "google_compute_router_nat" "an1_nat" {
+#   name                               = "btc4043-an1-nat"
+#   router                             = google_compute_router.default.name
+#   region                             = google_compute_router.default.region
+#   nat_ip_allocate_option             = "MANUAL_ONLY"
+#   nat_ips                            = google_compute_address.nat_external_ipaddress.*.self_link
+#   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+
+#   subnetwork {
+#     name                    = google_compute_subnetwork.default.id
+#     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
+#   }
+
+#   subnetwork {
+#     name                    = google_compute_subnetwork.default.id
+#     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
+#   }
+# }
+
+
+# gcloud redis instances create --project=hojingpt-staging  hojingpt-staging --tier=スタンダード --size=5 --region=asia-northeast1 --redis-version=redis_6_x --network=projects/hojingpt-staging/global/networks/hojingpt-staging --connect-mode=PRIVATE_SERVICE_ACCESS --display-name="hojingpt-staging" --maintenance-window-day=SUNDAY --maintenance-window-hour=18

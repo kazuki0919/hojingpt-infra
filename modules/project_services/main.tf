@@ -9,6 +9,8 @@ variable "endpoints" {
     "appengine.googleapis.com",
     "cloudscheduler.googleapis.com",
     "cloudbuild.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "vpcaccess.googleapis.com",
   ]
 }
 

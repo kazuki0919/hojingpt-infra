@@ -1,39 +1,26 @@
-variable "name" {
-  type = string
-}
+resource "google_redis_instance" "default" {
+  name           = var.name
+  tier           = var.tier
+  memory_size_gb = var.memory_size
 
-variable "region" {
-  type    = string
-  default = "asia-northeast1"
-}
+  location_id = var.zone
 
-resource "google_redis_instance" "cache" {
-  name           = "ha-memory-cache"
-  tier           = "STANDARD_HA"
-  memory_size_gb = 1
+  authorized_network = var.network_id
+  connect_mode       = "PRIVATE_SERVICE_ACCESS"
 
-  location_id             = "asia-northeast1a"
-  alternative_location_id = "us-central1-f"
+  redis_version = var.redis_version
 
-  authorized_network = data.google_compute_network.redis-network.id
-
-  redis_version     = "REDIS_6_X"
-  display_name      = "Terraform Test Instance"
-  reserved_ip_range = "192.168.0.0/29"
-
-  labels = {
-    project    = "my_val"
-    other_key = "other_val"
-  }
+  labels = var.labels
 
   maintenance_policy {
+    # For UTC+9, it is 3:00AM on Monday.
     weekly_maintenance_window {
-      day = "TUESDAY"
+      day = "SUNDAY"
       start_time {
-        hours = 0
-        minutes = 30
+        hours   = 18
+        minutes = 0
         seconds = 0
-        nanos = 0
+        nanos   = 0
       }
     }
   }

@@ -22,17 +22,18 @@ module "project_services" {
 
 module "network" {
   source      = "../../modules/network"
+  project     = local.project
+  region      = local.region
   name        = "hojingpt"
   name_suffix = "-${local.env}"
 }
 
 module "spanner" {
-  source  = "../../modules/database/spanner"
-  project = local.project
-  name    = "hojingpt-instance-${local.env}"
-  db      = "hojingpt"
-  config  = "regional-asia-northeast1"
-
+  source           = "../../modules/database/spanner"
+  project          = local.project
+  name             = "hojingpt-instance-${local.env}"
+  db               = "hojingpt"
+  config           = "regional-asia-northeast1"
   processing_units = 100
 
   labels = {
@@ -56,9 +57,12 @@ module "spanner_autoscaler" {
   monitoring_enabled = true
 }
 
-# module "redis" {
-#   source = "../../modules/cache/redis"
-#   name   = "hojingpt-${local.env}"
+module "redis" {
+  source      = "../../modules/cache/redis"
+  name        = "hojingpt-${local.env}"
+  tier        = "BASIC"
+  memory_size = 2
+  network_id  = module.network.default.id
 
-#   depends_on = [module.project_services]
-# }
+  depends_on = [module.project_services]
+}
