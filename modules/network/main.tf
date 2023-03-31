@@ -13,7 +13,7 @@ resource "google_compute_subnetwork" "default" {
 }
 
 resource "google_vpc_access_connector" "default" {
-  name           = var.project
+  name           = "${var.name}-default${var.name_suffix}"
   region         = var.region
   ip_cidr_range  = "10.8.0.0/28"
   network        = google_compute_network.default.name
@@ -24,7 +24,7 @@ resource "google_vpc_access_connector" "default" {
 }
 
 resource "google_compute_global_address" "default" {
-  name          = "hojingpt-default-staging"
+  name          = "${var.name}-default${var.name_suffix}"
   address_type  = "INTERNAL"
   purpose       = "VPC_PEERING"
   network       = google_compute_network.default.id
@@ -71,6 +71,3 @@ resource "google_service_networking_connection" "default" {
 #     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
 #   }
 # }
-
-
-# gcloud redis instances create --project=hojingpt-staging  hojingpt-staging --tier=スタンダード --size=5 --region=asia-northeast1 --redis-version=redis_6_x --network=projects/hojingpt-staging/global/networks/hojingpt-staging --connect-mode=PRIVATE_SERVICE_ACCESS --display-name="hojingpt-staging" --maintenance-window-day=SUNDAY --maintenance-window-hour=18
