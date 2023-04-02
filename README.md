@@ -4,3 +4,4 @@
 ### Exceptional manual managed resources
 - IAM Service Account: `terraform`
 - Cloud Strage: `givery-hojingpt-tfstate-{staging|prod}`
+- Enabling and Disabling the API
