@@ -75,3 +75,18 @@ module "app" {
   connector_name  = module.network.default_vpc_access_connector.name
   container_image = "gcr.io/hojingpt-${local.env}/hojingpt"
 }
+
+module "bastion" {
+  source        = "../../modules/bastion"
+  project       = local.project
+  region        = local.region
+  name          = "hojingpt-bastion-${local.env}"
+  network_id    = module.network.default_network.id
+  subnetwork_id = module.network.default_subnetwork.name
+ 
+  labels = {
+    env     = local.env
+    service = "hojingpt"
+    source  = "bastion"
+  }
+}
