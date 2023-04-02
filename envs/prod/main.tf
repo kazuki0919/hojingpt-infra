@@ -16,10 +16,6 @@ provider "google" {
   region  = local.region
 }
 
-module "project_services" {
-  source = "../../modules/project_services"
-}
-
 module "network" {
   source      = "../../modules/network"
   project     = local.project
@@ -41,8 +37,6 @@ module "spanner" {
     service = "hojingpt"
     source  = "spanner"
   }
-
-  depends_on = [module.project_services]
 }
 
 # TODO
@@ -53,7 +47,6 @@ module "spanner" {
 #   name         = "hojingpt"
 #   name_suffix  = "-${local.env}"
 #   spanner_name = module.spanner.name
-#   depends_on   = [module.project_services]
 
 #   monitoring_enabled = true
 # }
@@ -66,8 +59,6 @@ module "redis" {
   replica_count      = 1
   read_replicas_mode = "READ_REPLICAS_ENABLED"
   network_id         = module.network.default_network.id
-
-  depends_on = [module.project_services]
 }
 
 # TODO

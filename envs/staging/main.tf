@@ -16,10 +16,6 @@ provider "google" {
   region  = local.region
 }
 
-module "project_services" {
-  source = "../../modules/project_services"
-}
-
 module "network" {
   source      = "../../modules/network"
   project     = local.project
@@ -41,8 +37,6 @@ module "spanner" {
     service = "hojingpt"
     source  = "spanner"
   }
-
-  depends_on = [module.project_services]
 }
 
 module "spanner_autoscaler" {
@@ -52,7 +46,6 @@ module "spanner_autoscaler" {
   name         = "hojingpt"
   name_suffix  = "-${local.env}"
   spanner_name = module.spanner.name
-  depends_on   = [module.project_services]
 
   monitoring_enabled = true
 }
@@ -63,8 +56,6 @@ module "redis" {
   tier        = "BASIC"
   memory_size = 2
   network_id  = module.network.default_network.id
-
-  depends_on = [module.project_services]
 }
 
 module "app" {
