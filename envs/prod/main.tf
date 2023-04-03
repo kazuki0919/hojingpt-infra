@@ -39,17 +39,16 @@ module "spanner" {
   }
 }
 
-# TODO
-# module "spanner_autoscaler" {
-#   source       = "../../modules/database/spanner/autoscaler"
-#   project      = local.project
-#   region       = local.region
-#   name         = "hojingpt"
-#   name_suffix  = "-${local.env}"
-#   spanner_name = module.spanner.name
+module "spanner_autoscaler" {
+  source       = "../../modules/database/spanner/autoscaler"
+  project      = local.project
+  region       = local.region
+  name         = "hojingpt"
+  name_suffix  = "-${local.env}"
+  spanner_name = module.spanner.name
 
-#   monitoring_enabled = true
-# }
+  monitoring_enabled = true
+}
 
 module "redis" {
   source             = "../../modules/cache/redis"
