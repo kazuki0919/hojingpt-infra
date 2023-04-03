@@ -78,10 +78,35 @@ module "bastion" {
   name          = "hojingpt-bastion-${local.env}"
   network_id    = module.network.default_network.id
   subnetwork_id = module.network.default_subnetwork.name
- 
+
   labels = {
     env     = local.env
     service = "hojingpt"
     source  = "bastion"
+  }
+}
+
+data "google_monitoring_notification_channel" "slack" {
+  for_each = {
+    emergency = "EmergencyCall for ${local.env}"
+    events    = "SystemEvents for ${local.env}"
+  }
+  display_name = each.value
+}
+
+module "monitoring" {
+  source      = "../../modules/monitoring"
+  project     = local.project
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
+
+  emergency_channel = data.google_monitoring_notification_channel.slack["emergency"].name
+  events_channel    = data.google_monitoring_notification_channel.slack["events"].name
+
+  uptimes = {
+    app = {
+      path     = "/sys/health"
+      location = local.region
+    }
   }
 }
