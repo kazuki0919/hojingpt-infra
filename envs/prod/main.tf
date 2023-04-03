@@ -60,7 +60,7 @@ module "redis" {
   network_id         = module.network.default_network.id
 }
 
-# TODO
+# NOTE: Commented out as unmanaged
 # module "app" {
 #   source          = "../../modules/apps/cloudrun"
 #   project         = local.project
