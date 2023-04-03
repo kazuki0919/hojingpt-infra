@@ -63,3 +63,79 @@ resource "google_monitoring_alert_policy" "lower_latency" {
 
   user_labels = var.labels
 }
+
+resource "google_monitoring_alert_policy" "high_cpu" {
+  display_name          = "${var.name}${var.name_suffix} high cpu"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "604800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Run Revision - Container CPU Utilization"
+
+    condition_threshold {
+      comparison      = "COMPARISON_GT"
+      duration        = "0s"
+      threshold_value = 0.7
+
+      filter = <<-EOT
+        resource.type="cloud_run_revision" AND
+        metric.type="run.googleapis.com/container/cpu/utilizations"
+      EOT
+
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_PERCENTILE_99"
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+}
+
+resource "google_monitoring_alert_policy" "high_memory" {
+  display_name          = "${var.name}${var.name_suffix} high memory usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "604800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Run Revision - Container Memory Utilization"
+
+    condition_threshold {
+      comparison      = "COMPARISON_GT"
+      duration        = "0s"
+      threshold_value = 0.7
+
+      filter = <<-EOT
+        resource.type="cloud_run_revision" AND
+        metric.type="run.googleapis.com/container/memory/utilizations"
+      EOT
+
+      aggregations {
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_PERCENTILE_99"
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+}
