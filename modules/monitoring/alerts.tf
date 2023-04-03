@@ -3,7 +3,7 @@
 ############
 resource "google_monitoring_alert_policy" "cloudrun_error_logs" {
   for_each              = { for x in var.logs.cloudrun : x.service_name => x }
-  display_name          = "${var.name}${var.name_suffix} cloudrun error logs - ${each.key}"
+  display_name          = "${var.name}${var.name_suffix} cloudrun error logs"
   notification_channels = [var.emergency_channel]
 
   alert_strategy {
@@ -22,7 +22,7 @@ resource "google_monitoring_alert_policy" "cloudrun_error_logs" {
     condition_matched_log {
       filter = <<-EOT
         resource.type="cloud_run_revision" AND
-        resource.labels.service_name="hojingpt" AND
+        resource.labels.service_name="${each.key}" AND
         severity=ERROR
       EOT
     }
