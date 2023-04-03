@@ -100,10 +100,17 @@ module "monitoring" {
   emergency_channel = data.google_monitoring_notification_channel.slack["emergency"].name
   events_channel    = data.google_monitoring_notification_channel.slack["events"].name
 
+  logs = {
+    cloudrun = [
+      { service_name = "hojingpt" }
+    ]
+  }
+
   uptimes = {
     app = {
-      path     = "/sys/health"
-      location = local.region
+      service_name = "hojingpt"
+      path         = "/sys/health"
+      location     = local.region
     }
   }
 }

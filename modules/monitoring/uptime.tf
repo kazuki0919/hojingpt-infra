@@ -1,9 +1,10 @@
+# NOTE: 通知チャンネルの設定項目が見当たらなかったので手動で Slack チャンネルに紐付けた
 resource "google_monitoring_uptime_check_config" "cloudrun" {
   for_each     = var.uptimes
   project      = var.project
   display_name = "${var.name}${var.name_suffix} uptime failure"
   timeout      = "10s"
-  period       = "60s"
+  period       = "300s"
 
   http_check {
     path           = each.value.path
@@ -22,7 +23,7 @@ resource "google_monitoring_uptime_check_config" "cloudrun" {
     labels = {
       project_id         = var.project
       location           = each.value.location
-      service_name       = var.name
+      service_name       = each.value.service_name
       configuration_name = ""
       revision_name      = ""
     }
