@@ -58,14 +58,15 @@ module "redis" {
   network_id  = module.network.default_network.id
 }
 
-module "app" {
-  source          = "../../modules/apps/cloudrun"
-  project         = local.project
-  name            = "hojingpt"
-  location        = local.region
-  connector_name  = module.network.default_vpc_access_connector.name
-  container_image = "gcr.io/hojingpt-${local.env}/hojingpt"
-}
+# TODO
+# module "app" {
+#   source          = "../../modules/apps/cloudrun"
+#   project         = local.project
+#   name            = "hojingpt"
+#   location        = local.region
+#   connector_name  = module.network.default_vpc_access_connector.name
+#   container_image = "gcr.io/hojingpt-${local.env}/hojingpt"
+# }
 
 module "bastion" {
   source        = "../../modules/bastion"
