@@ -26,13 +26,6 @@ variable "logs" {
   default = {}
 }
 
-variable "alerts" {
-  type = object({
-    cloudrun_latency_enabled = optional(bool, true)
-  })
-  default = {}
-}
-
 variable "uptimes" {
   type = map(object({
     service_name = string

@@ -105,8 +105,4 @@ module "monitoring" {
       { service_name = "hojingpt" }
     ]
   }
-
-  alerts = {
-    cloudrun_latency_enabled = false
-  }
 }

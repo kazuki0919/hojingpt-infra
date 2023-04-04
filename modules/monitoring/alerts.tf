@@ -29,10 +29,13 @@ resource "google_monitoring_alert_policy" "cloudrun_error_logs" {
   }
 
   user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
 }
 
 resource "google_monitoring_alert_policy" "cloudrun_latency" {
-  count                 = var.alerts.cloudrun_latency_enabled ? 1 : 0
   display_name          = "${var.name}${var.name_suffix} cloudrun lower latency"
   notification_channels = [var.emergency_channel]
 
@@ -70,6 +73,10 @@ resource "google_monitoring_alert_policy" "cloudrun_latency" {
   }
 
   user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
 }
 
 resource "google_monitoring_alert_policy" "cloudrun_cpu" {
@@ -110,6 +117,10 @@ resource "google_monitoring_alert_policy" "cloudrun_cpu" {
   }
 
   user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
 }
 
 resource "google_monitoring_alert_policy" "cloudrun_memory" {
@@ -150,6 +161,10 @@ resource "google_monitoring_alert_policy" "cloudrun_memory" {
   }
 
   user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
 }
 
 ########
@@ -196,4 +211,55 @@ resource "google_monitoring_alert_policy" "redis_memory" {
   }
 
   user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "redis_eviction" {
+  display_name          = "${var.name}${var.name_suffix} redis eviction"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Memorystore Redis Instance - Evicted Keys"
+
+    condition_threshold {
+      comparison      = "COMPARISON_GT"
+      duration        = "300s"
+      threshold_value = 0
+
+      filter = <<-EOT
+        resource.type="redis_instance" AND
+        metric.type="redis.googleapis.com/stats/evicted_keys"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_SUM"
+        cross_series_reducer = "REDUCE_SUM"
+        group_by_fields      = [
+          "metric.label.role",
+          "resource.label.node_id",
+        ]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
 }

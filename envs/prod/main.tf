@@ -108,11 +108,12 @@ module "monitoring" {
     ]
   }
 
-  uptimes = {
-    app = {
-      service_name = "hojingpt"
-      path         = "/sys/health"
-      location     = local.region
-    }
-  }
+  # TODO: Enable when access is coming in earnest.
+  # uptimes = {
+  #   app = {
+  #     service_name = "hojingpt"
+  #     path         = "/sys/health"
+  #     location     = local.region
+  #   }
+  # }
 }
