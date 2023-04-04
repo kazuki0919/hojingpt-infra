@@ -10,6 +10,9 @@
 
 # How to setup terraform
 
+I would recommend installing [tfenv](https://github.com/tfutils/tfenv) instead of installing terraform.
+It is already versioned in `.terraform-version`.
+
 Here you will find the service account to use terraform.
 
 - [staging env's service account](https://console.cloud.google.com/iam-admin/serviceaccounts/details/109141712245035595455?project=hojingpt-staging)
