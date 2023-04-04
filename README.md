@@ -31,3 +31,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="/Users/yyoda/.gcp/service_accounts/hojing
 ```
 
 This completes the configuration, though, If you switch environments and run terraform, you will need to modify the environment variables as well, so it is recommended to use a tool such as [direnv](https://github.com/direnv/direnv).
+
+# CI/CD
+
+Unfortunately, CI/CD has not yet been set up. So, you need to use terraform locally.
