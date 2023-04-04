@@ -32,6 +32,7 @@ resource "google_monitoring_alert_policy" "cloudrun_error_logs" {
 }
 
 resource "google_monitoring_alert_policy" "cloudrun_latency" {
+  count                 = var.alerts.cloudrun_latency_enabled ? 1 : 0
   display_name          = "${var.name}${var.name_suffix} cloudrun lower latency"
   notification_channels = [var.emergency_channel]
 

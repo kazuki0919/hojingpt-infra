@@ -106,11 +106,7 @@ module "monitoring" {
     ]
   }
 
-  uptimes = {
-    app = {
-      service_name = "hojingpt"
-      path         = "/sys/health"
-      location     = local.region
-    }
+  alerts = {
+    cloudrun_latency_enabled = false
   }
 }
