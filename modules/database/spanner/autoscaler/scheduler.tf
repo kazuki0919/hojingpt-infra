@@ -29,7 +29,6 @@ resource "google_cloud_scheduler_job" "poller_job" {
             "units" : "PROCESSING_UNITS",
             "minSize" : var.min_size,
             "maxSize" : var.max_size,
-            "scaleInCoolingMinutes": 10,
             "scalingMethod" : "STEPWISE",
             "stateDatabase" : {
               "name" : "firestore",
