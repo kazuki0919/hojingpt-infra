@@ -319,7 +319,7 @@ resource "google_monitoring_alert_policy" "spanner_high_cpu_usage" {
   }
 }
 
-resource "google_monitoring_alert_policy" "spanner_high_processing_usage" {
+resource "google_monitoring_alert_policy" "spanner_high_processing_unit_usage" {
   display_name          = "${var.name}${var.name_suffix} spanner high processing unit usage"
   notification_channels = [var.emergency_channel]
 
