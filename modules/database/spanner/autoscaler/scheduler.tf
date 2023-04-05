@@ -1,5 +1,10 @@
-# NOTES: これを実行するとプロジェクトのロケーションが決まってしまうので、事前に手動で構成したほうが良い。プロジェクトのロケーションは後から変更ができないので慎重にやるべき。
-# resource "google_app_engine_application" "app" {
+###########################################################################################
+# NOTES
+#  - Doing this will determine the location of the project.
+#  - This primarily affects Firestore and others. The location cannot be changed later.
+#  - For this reason, we have decided to exclude it in terraform.
+###########################################################################################
+# resource "google_app_engine_application" "default" {
 #   project     = var.project
 #   location_id = var.location
 # }
@@ -30,5 +35,5 @@ resource "google_cloud_scheduler_job" "poller_job" {
     ]))
   }
 
-  # depends_on = [google_app_engine_application.app]
+  # depends_on = [google_app_engine_application.default]
 }
