@@ -25,12 +25,13 @@ module "network" {
 }
 
 module "spanner" {
-  source           = "../../modules/database/spanner"
-  project          = local.project
-  name             = "hojingpt-instance-${local.env}"
-  db               = "hojingpt"
-  config           = "regional-asia-northeast1"
-  processing_units = 100
+  source              = "../../modules/database/spanner"
+  project             = local.project
+  name                = "hojingpt-instance-${local.env}"
+  db                  = "hojingpt"
+  config              = "regional-asia-northeast1"
+  processing_units    = 100
+  deletion_protection = true
 
   labels = {
     env     = local.env

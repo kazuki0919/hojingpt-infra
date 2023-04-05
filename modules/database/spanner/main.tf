@@ -12,13 +12,22 @@ resource "google_spanner_instance" "default" {
     update = var.spanner_instance_timeout
     delete = var.spanner_instance_timeout
   }
+
+  lifecycle {
+    ignore_changes = [
+      processing_units,
+      num_nodes,
+    ]
+  }
 }
 
 resource "google_spanner_database" "default" {
-  instance            = google_spanner_instance.default.name
-  name                = var.db
-  ddl                 = var.ddl_queries
-  deletion_protection = var.deletion_protection
+  instance                 = google_spanner_instance.default.name
+  name                     = var.db
+  ddl                      = var.ddl_queries
+  deletion_protection      = var.deletion_protection
+  version_retention_period = "7d"
+  database_dialect         = "GOOGLE_STANDARD_SQL"
 
   timeouts {
     create = var.spanner_db_timeout
