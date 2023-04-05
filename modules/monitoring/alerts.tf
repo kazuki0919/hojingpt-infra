@@ -300,8 +300,8 @@ resource "google_monitoring_alert_policy" "spanner_high_cpu_usage" {
 
       aggregations {
         alignment_period     = "120s"
-        per_series_aligner   = "ALIGN_MAX"
-        cross_series_reducer = "REDUCE_MAX"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_SUM"
         group_by_fields      = ["resource.label.instance_id"]
       }
 
