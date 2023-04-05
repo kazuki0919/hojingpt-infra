@@ -46,6 +46,8 @@ module "spanner_autoscaler" {
   name         = "hojingpt"
   name_suffix  = "-${local.env}"
   spanner_name = module.spanner.name
+  min_size     = 100
+  max_size     = 2000
 
   monitoring_enabled = true
 }
@@ -107,6 +109,8 @@ module "monitoring" {
       { service_name = "hojingpt" }
     ]
   }
+
+  spanner_max_size = module.spanner_autoscaler.max_size
 
   # TODO: Enable when access is coming in earnest.
   # uptimes = {

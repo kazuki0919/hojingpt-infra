@@ -39,3 +39,8 @@ variable "labels" {
   type    = map(string)
   default = {}
 }
+
+variable "spanner_max_size" {
+  type        = number
+  description = "Maximum processing units to scale to"
+}

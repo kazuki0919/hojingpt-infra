@@ -22,12 +22,10 @@ variable "spanner_name" {
 
 variable "min_size" {
   type        = number
-  default     = 100
-  description = "Minimum size that the spanner instance can be scaled in to."
+  description = "Minimum processing units that the spanner instance can be scaled in to."
 }
 
 variable "max_size" {
   type        = number
-  default     = 2000
-  description = "Maximum size that the spanner instance can be scaled out to."
+  description = "Maximum processing units that the spanner instance can be scaled out to."
 }
