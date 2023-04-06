@@ -24,6 +24,13 @@ module "network" {
   name_suffix = "-${local.env}"
 }
 
+module "storage" {
+  source      = "../../modules/storage"
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
+  region      = local.region
+}
+
 module "spanner" {
   source              = "../../modules/database/spanner"
   project             = local.project
@@ -41,16 +48,16 @@ module "spanner" {
 }
 
 module "spanner_autoscaler" {
-  source       = "../../modules/database/spanner/autoscaler"
-  project      = local.project
-  region       = local.region
-  name         = "hojingpt"
-  name_suffix  = "-${local.env}"
-  spanner_name = module.spanner.name
-  min_size     = 100
-  max_size     = 2000
-
+  source             = "../../modules/database/spanner/autoscaler"
+  project            = local.project
+  region             = local.region
+  name               = "hojingpt"
+  name_suffix        = "-${local.env}"
+  spanner_name       = module.spanner.name
+  min_size           = 100
+  max_size           = 2000
   monitoring_enabled = true
+  function_bucket    = module.storage.function_source_bucket.name
 }
 
 module "spanner_scheduled_backups" {
@@ -59,7 +66,7 @@ module "spanner_scheduled_backups" {
   region          = local.region
   name            = "hojingpt"
   name_suffix     = "-${local.env}"
-  function_bucket = "hojingpt-function-source-${local.env}"
+  function_bucket = module.storage.function_source_bucket.name
   instance_id     = module.spanner.name
   database_id     = module.spanner.db
 }

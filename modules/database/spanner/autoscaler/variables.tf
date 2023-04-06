@@ -29,3 +29,7 @@ variable "max_size" {
   type        = number
   description = "Maximum processing units that the spanner instance can be scaled out to."
 }
+
+variable "function_bucket" {
+  type = string
+}
