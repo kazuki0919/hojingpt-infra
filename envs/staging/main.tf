@@ -128,3 +128,13 @@ module "monitoring" {
 
   spanner_max_size = module.spanner_autoscaler.max_size
 }
+
+# TODO
+# module "system_event_notifier" {
+#   source          = "../../modules/notification/system_event_notifier"
+#   name            = "hojingpt"
+#   name_suffix     = "-${local.env}"
+#   project         = local.project
+#   location        = local.region
+#   function_bucket = module.storage.function_source_bucket.name
+# }
