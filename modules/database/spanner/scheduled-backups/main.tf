@@ -1,34 +1,12 @@
-variable "name" {
-  type = string
-}
-
-variable "name_suffix" {
-  type = string
-}
-
-variable "project" {
-  type = string
-}
-
-variable "region" {
-  type = string
-}
-
-variable "function_bucket" {
-  type = string
-}
-
-variable "instance_id" {
-  type = string
-}
-
-variable "database_id" {
-  type = string
-}
-
 resource "google_service_account" "scheduled_backups" {
   account_id   = "${var.name}-spanner-auto-backup"
   display_name = "Scheduled Backups for Spanner"
+}
+
+resource "google_project_iam_member" "backup_sa_spanner_iam" {
+  project = var.project
+  role    = "roles/spanner.backupWriter"
+  member  = "serviceAccount:${google_service_account.scheduled_backups.email}"
 }
 
 # see: https://github.com/cloudspannerecosystem/scheduled-backups/tree/9314e22a182c91d41d7877e784d8521e51d211b5

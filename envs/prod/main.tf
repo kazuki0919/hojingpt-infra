@@ -53,6 +53,17 @@ module "spanner_autoscaler" {
   monitoring_enabled = true
 }
 
+module "spanner_scheduled_backups" {
+  source          = "../../modules/database/spanner/scheduled-backups"
+  project         = local.project
+  region          = local.region
+  name            = "hojingpt"
+  name_suffix     = "-${local.env}"
+  function_bucket = "hojingpt-function-source-${local.env}"
+  instance_id     = module.spanner.name
+  database_id     = module.spanner.db
+}
+
 module "redis" {
   source             = "../../modules/cache/redis"
   name               = "hojingpt-${local.env}"
