@@ -462,34 +462,34 @@ resource "google_monitoring_alert_policy" "function_failure" {
   }
 }
 
-# TODO; This may not be necessary.
-resource "google_monitoring_alert_policy" "function_error_logs" {
-  display_name          = "${var.name}${var.name_suffix} function error logs"
-  notification_channels = [var.emergency_channel]
+# TODO: Enable if need
+# resource "google_monitoring_alert_policy" "function_error_logs" {
+#   display_name          = "${var.name}${var.name_suffix} function error logs"
+#   notification_channels = [var.emergency_channel]
 
-  alert_strategy {
-    auto_close = "1800s"
-    notification_rate_limit {
-      period = "300s"
-    }
-  }
+#   alert_strategy {
+#     auto_close = "1800s"
+#     notification_rate_limit {
+#       period = "300s"
+#     }
+#   }
 
-  combiner = "OR"
+#   combiner = "OR"
 
-  conditions {
-    display_name = "Log match condition"
+#   conditions {
+#     display_name = "Log match condition"
 
-    condition_matched_log {
-      filter = <<-EOT
-        resource.type="cloud_function"
-        severity=ERROR
-      EOT
-    }
-  }
+#     condition_matched_log {
+#       filter = <<-EOT
+#         resource.type="cloud_function"
+#         severity=ERROR
+#       EOT
+#     }
+#   }
 
-  user_labels = var.labels
+#   user_labels = var.labels
 
-  lifecycle {
-    ignore_changes = [enabled]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [enabled]
+#   }
+# }
