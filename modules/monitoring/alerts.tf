@@ -408,3 +408,88 @@ resource "google_monitoring_alert_policy" "spanner_high_storage_usage" {
     ignore_changes = [enabled]
   }
 }
+
+###########
+# Function
+###########
+resource "google_monitoring_alert_policy" "function_failure" {
+  display_name          = "${var.name}${var.name_suffix} function failure"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Function - Executions"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type = "cloud_function" AND
+        metric.type = "cloudfunctions.googleapis.com/function/execution_count" AND
+        metric.labels.status != "ok"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_SUM"
+        cross_series_reducer = "REDUCE_SUM"
+
+        group_by_fields = [
+          "metric.label.status",
+          "resource.label.function_name",
+        ]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+# TODO; This may not be necessary.
+resource "google_monitoring_alert_policy" "function_error_logs" {
+  display_name          = "${var.name}${var.name_suffix} function error logs"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+    notification_rate_limit {
+      period = "300s"
+    }
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Log match condition"
+
+    condition_matched_log {
+      filter = <<-EOT
+        resource.type="cloud_function"
+        severity=ERROR
+      EOT
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}

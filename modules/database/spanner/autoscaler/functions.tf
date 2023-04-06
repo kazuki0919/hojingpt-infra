@@ -91,13 +91,15 @@ resource "google_cloudfunctions_function" "poller_function" {
   project             = var.project
   region              = var.region
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = 256
+  available_memory_mb = 512
   entry_point         = "checkSpannerScaleMetricsPubSub"
   runtime             = "nodejs10"
+
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.poller_topic.id
   }
+
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
   source_archive_object = google_storage_bucket_object.gcs_functions_poller_source.name
   service_account_email = google_service_account.poller_sa.email
@@ -112,13 +114,15 @@ resource "google_cloudfunctions_function" "scaler_function" {
   project             = var.project
   region              = var.region
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = 256
+  available_memory_mb = 512
   entry_point         = "scaleSpannerInstancePubSub"
   runtime             = "nodejs10"
+
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.scaler_topic.id
   }
+
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
   source_archive_object = google_storage_bucket_object.gcs_functions_scaler_source.name
   service_account_email = google_service_account.scaler_sa.email
