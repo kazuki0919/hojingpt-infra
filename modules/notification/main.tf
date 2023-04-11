@@ -18,19 +18,30 @@ variable "function_bucket" {
   type = string
 }
 
+data "google_project" "default" {}
+
 resource "google_service_account" "default" {
   account_id   = "${var.name}-notice${var.name_suffix}"
   display_name = "System event notifier by Cloud Functions"
 }
 
-# resource "google_project_iam_member" "eventarc" {
-#   project = var.project
-#   role    = "roles/eventarc.eventReceiver"
-#   member  = "serviceAccount:${google_service_account.system_event_notifier.email}"
-# }
+resource "google_project_iam_member" "default" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.default.email}"
+}
 
 resource "google_pubsub_topic" "default" {
   name = "${var.name}-notice${var.name_suffix}"
+}
+
+resource "google_pubsub_topic_iam_binding" "publisher" {
+  project = var.project
+  topic   = google_pubsub_topic.default.name
+  role    = "roles/pubsub.publisher"
+  members = [
+    "serviceAccount:service-${data.google_project.default.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
+  ]
 }
 
 data "archive_file" "default" {
@@ -76,7 +87,7 @@ resource "google_cloudfunctions2_function" "default" {
     trigger_region        = var.location
     event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
     pubsub_topic          = google_pubsub_topic.default.id
-    retry_policy          = "RETRY_POLICY_RETRY"
+    retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
     service_account_email = google_service_account.default.email
   }
 
