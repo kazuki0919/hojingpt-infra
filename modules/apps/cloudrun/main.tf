@@ -1,50 +1,25 @@
-resource "google_cloud_run_service" "default" {
-  name                       = var.name
-  location                   = var.location
-  autogenerate_revision_name = false
+variable "name" {
+  type = string
+}
 
-  metadata {
-    annotations = {
-      "client.knative.dev/user-image"           = var.container_image
-      "run.googleapis.com/vpc-access-connector" = var.connector_name
-      "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
-    }
-  }
+variable "project" {
+  type = string
+}
 
-  template {
-    spec {
-      # container_concurrency = 100
-      # timeout_seconds       = 300
+variable "location" {
+  type = string
+}
 
-      containers {
-        image = var.container_image
+data "google_cloud_run_service" "app" {
+  name     = var.name
+  project  = var.project
+  location = var.location
+}
 
-        # ports {
-        #   container_port = 8080
-        #   name           = "http1"
-        # }
+output "max_size" {
+  value = tonumber(data.google_cloud_run_service.app.template[0].metadata[0].annotations["autoscaling.knative.dev/maxScale"])
+}
 
-        # resources {
-        #   limits = {
-        #     cpu    = "1"
-        #     memory = "1024Mi"
-        #   }
-        # }
-      }
-    }
-  }
-
-  # traffic {
-  #   latest_revision = true
-  #   percent         = 100
-  # }
-
-  lifecycle {
-    ignore_changes = [
-      metadata[0].annotations["run.googleapis.com/client-name"],
-      metadata[0].annotations["run.googleapis.com/client-version"],
-      metadata[0].annotations["run.googleapis.com/ingress"],
-      metadata[0].annotations["run.googleapis.com/operation-id"],
-    ]
-  }
+output "max_concurrency" {
+  value = data.google_cloud_run_service.app.template[0].spec[0].container_concurrency
 }

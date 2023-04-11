@@ -81,15 +81,12 @@ module "redis" {
   network_id         = module.network.default_network.id
 }
 
-# NOTE: Commented out as unmanaged
-# module "app" {
-#   source          = "../../modules/apps/cloudrun"
-#   project         = local.project
-#   name            = "hojingpt"
-#   location        = local.region
-#   connector_name  = module.network.default_vpc_access_connector.name
-#   container_image = "gcr.io/hojingpt-${local.env}/hojingpt"
-# }
+module "app" {
+  source   = "../../modules/apps/cloudrun"
+  project  = local.project
+  location = local.region
+  name     = "hojingpt"
+}
 
 module "bastion" {
   source        = "../../modules/bastion"
@@ -129,7 +126,14 @@ module "monitoring" {
     ]
   }
 
-  spanner_max_size = module.spanner_autoscaler.max_size
+  spanner = {
+    max_size = module.spanner_autoscaler.max_size
+  }
+
+  cloudrun = {
+    max_size        = module.app.max_size
+    max_concurrency = module.app.max_concurrency
+  }
 
   # TODO: Enable when access is coming in earnest.
   # uptimes = {

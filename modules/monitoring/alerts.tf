@@ -170,6 +170,98 @@ resource "google_monitoring_alert_policy" "cloudrun_high_memory_usage" {
   }
 }
 
+resource "google_monitoring_alert_policy" "cloudrun_high_instances" {
+  display_name          = "${var.name}${var.name_suffix} cloudrun too many instances"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Run Revision - Instance Count"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = var.cloudrun.max_size * 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="cloud_run_revision" AND
+        metric.type="run.googleapis.com/container/instance_count" AND
+        metric.labels.state="active"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MAX"
+        cross_series_reducer = "REDUCE_MAX"
+        group_by_fields      = ["resource.label.service_name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "cloudrun_high_concurrency" {
+  display_name          = "${var.name}${var.name_suffix} cloudrun high concurrency"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud Run Revision - Max Concurrent Requests"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = var.cloudrun.max_concurrency * 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="cloud_run_revision" AND
+        metric.type="run.googleapis.com/container/max_request_concurrencies" AND
+        metric.labels.state="active"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_PERCENTILE_99"
+        cross_series_reducer = "REDUCE_PERCENTILE_99"
+        group_by_fields      = ["resource.label.service_name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
 ########
 # Redis
 ########
@@ -335,7 +427,7 @@ resource "google_monitoring_alert_policy" "spanner_high_processing_unit_usage" {
     condition_threshold {
       comparison              = "COMPARISON_GT"
       duration                = "300s"
-      threshold_value         = var.spanner_max_size * 0.7
+      threshold_value         = var.spanner.max_size * 0.7
       evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
 
       filter = <<-EOT

@@ -40,7 +40,15 @@ variable "labels" {
   default = {}
 }
 
-variable "spanner_max_size" {
-  type        = number
-  description = "Maximum processing units to scale to"
+variable "spanner" {
+  type = object({
+    max_size = number
+  })
+}
+
+variable "cloudrun" {
+  type = object({
+    max_size        = number
+    max_concurrency = number
+  })
 }
