@@ -133,8 +133,8 @@ module "monitoring" {
   }
 }
 
-module "system_event_notifier" {
-  source          = "../../modules/notification/system_event_notifier"
+module "notification" {
+  source          = "../../modules/notification"
   name            = "hojingpt"
   name_suffix     = "-${local.env}"
   project         = local.project
