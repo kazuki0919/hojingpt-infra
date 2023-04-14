@@ -109,6 +109,7 @@ data "google_monitoring_notification_channel" "slack" {
     events    = "SystemEvents for ${local.env}"
   }
   display_name = each.value
+  type         = "slack"
 }
 
 module "monitoring" {
@@ -143,4 +144,12 @@ module "monitoring" {
   #     location     = local.region
   #   }
   # }
+}
+
+module "logging" {
+  source      = "../../modules/logging"
+  project     = local.project
+  location    = local.region
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
 }

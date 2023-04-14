@@ -106,6 +106,7 @@ data "google_monitoring_notification_channel" "slack" {
     events    = "SystemEvents for ${local.env}"
   }
   display_name = each.value
+  type         = "slack"
 }
 
 module "monitoring" {
@@ -141,3 +142,12 @@ module "notification" {
   location        = local.region
   function_bucket = module.storage.function_source_bucket.name
 }
+
+# TODO: apply after 4/22
+# module "logging" {
+#   source      = "../../modules/logging"
+#   project     = local.project
+#   location    = local.region
+#   name        = "hojingpt"
+#   name_suffix = "-${local.env}"
+# }
