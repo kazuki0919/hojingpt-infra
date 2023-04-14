@@ -42,7 +42,7 @@ resource "google_pubsub_topic_iam_binding" "publisher" {
   topic   = google_pubsub_topic.default.name
   role    = "roles/pubsub.publisher"
   members = [
-    "serviceAccount:service-${data.google_project.default.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
+    google_logging_project_sink.default.writer_identity,
   ]
 }
 

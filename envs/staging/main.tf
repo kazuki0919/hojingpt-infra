@@ -134,14 +134,15 @@ module "monitoring" {
   }
 }
 
-module "notification" {
-  source          = "../../modules/notification"
-  name            = "hojingpt"
-  name_suffix     = "-${local.env}"
-  project         = local.project
-  location        = local.region
-  function_bucket = module.storage.function_source_bucket.name
-}
+# TODO: The Function is not yet complete.
+# module "notification" {
+#   source          = "../../modules/notification"
+#   name            = "hojingpt"
+#   name_suffix     = "-${local.env}"
+#   project         = local.project
+#   location        = local.region
+#   function_bucket = module.storage.function_source_bucket.name
+# }
 
 # TODO: apply after 4/22
 # module "logging" {
