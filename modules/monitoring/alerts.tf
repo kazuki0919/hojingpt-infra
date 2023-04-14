@@ -1,6 +1,6 @@
-############
+######################################################################################
 # Cloud Run
-############
+######################################################################################
 resource "google_monitoring_alert_policy" "cloudrun_error_logs" {
   for_each              = { for x in var.logs.cloudrun : x.service_name => x }
   display_name          = "${var.name}${var.name_suffix} cloudrun error logs"
@@ -262,9 +262,9 @@ resource "google_monitoring_alert_policy" "cloudrun_high_concurrency" {
   }
 }
 
-########
+######################################################################################
 # Redis
-########
+######################################################################################
 resource "google_monitoring_alert_policy" "redis_high_memory_usage" {
   display_name          = "${var.name}${var.name_suffix} redis high memory usage"
   notification_channels = [var.emergency_channel]
@@ -361,9 +361,9 @@ resource "google_monitoring_alert_policy" "redis_key_eviction" {
   }
 }
 
-##########
+######################################################################################
 # Spanner
-##########
+######################################################################################
 # see: https://cloud.google.com/spanner/docs/monitoring-cloud?hl=ja#24-hour-rolling-average-cpu
 resource "google_monitoring_alert_policy" "spanner_high_cpu_usage" {
   display_name          = "${var.name}${var.name_suffix} spanner high cpu usage"
@@ -501,9 +501,157 @@ resource "google_monitoring_alert_policy" "spanner_high_storage_usage" {
   }
 }
 
-###########
+
+######################################################################################
+# VPC Access Connector
+######################################################################################
+resource "google_monitoring_alert_policy" "vpc_connector_high_cpu_usage" {
+  display_name          = "${var.name}${var.name_suffix} vpc connector high cpu usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "VPC Access Connector - CPU Utilizations"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="vpc_access_connector" AND
+        metric.type="vpcaccess.googleapis.com/connector/cpu/utilizations"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_PERCENTILE_99"
+        cross_series_reducer = "REDUCE_PERCENTILE_99"
+
+        group_by_fields = [
+          "resource.label.connector_name",
+        ]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "vpc_connector_high_bytes_received" {
+  display_name          = "${var.name}${var.name_suffix} vpc connector too many bytes received"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "VPC Access Connector - Bytes received delta"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 83886080 # 80MiB
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="vpc_access_connector" AND
+        metric.type="vpcaccess.googleapis.com/connector/received_bytes_count"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+
+        group_by_fields = [
+          "resource.label.connector_name",
+        ]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "vpc_connector_high_bytes_sent" {
+  display_name          = "${var.name}${var.name_suffix} vpc connector too many bytes sent"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "VPC Access Connector - Bytes sent delta"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 83886080 # 80MiB
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="vpc_access_connector" AND
+        metric.type="vpcaccess.googleapis.com/connector/sent_bytes_count"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+
+        group_by_fields = [
+          "resource.label.connector_name",
+        ]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+######################################################################################
 # Function
-###########
+######################################################################################
 resource "google_monitoring_alert_policy" "function_failure" {
   display_name          = "${var.name}${var.name_suffix} function failure"
   notification_channels = [var.emergency_channel]
