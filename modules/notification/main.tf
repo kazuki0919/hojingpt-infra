@@ -18,7 +18,9 @@ variable "function_bucket" {
   type = string
 }
 
-data "google_project" "default" {}
+data "google_project" "default" {
+  project_id = var.project
+}
 
 resource "google_service_account" "default" {
   account_id   = "${var.name}-notice${var.name_suffix}"
@@ -42,6 +44,28 @@ resource "google_pubsub_topic_iam_binding" "publisher" {
   members = [
     "serviceAccount:service-${data.google_project.default.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
   ]
+}
+
+resource "google_logging_project_sink" "default" {
+  name        = "${var.name}-notice${var.name_suffix}"
+  destination = "pubsub.googleapis.com/${google_pubsub_topic.default.id}"
+
+  filter = <<-EOT
+    (
+      resource.type="cloud_run_revision" AND
+      log_name="projects/${var.project}/logs/cloudaudit.googleapis.com%2Fsystem_event"
+    )
+    OR
+    (
+      resource.type="redis_instance"
+    )
+    OR
+    (
+      resource.type="spanner_instance"
+    )
+  EOT
+
+  unique_writer_identity = true
 }
 
 data "archive_file" "default" {
