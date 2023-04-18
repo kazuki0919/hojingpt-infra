@@ -85,6 +85,20 @@ module "app" {
   name     = "hojingpt"
 }
 
+# module "load_balancer" {
+#   source      = "../../modules/loadbalancer"
+#   project     = local.project
+#   region      = local.region
+#   name        = "hojingpt"
+#   name_suffix = "-${local.env}"
+
+#   app_service_name = module.app.service_name
+
+#   domains = [
+#     "staging.hojingpt.com",
+#   ]
+# }
+
 module "bastion" {
   source        = "../../modules/bastion"
   project       = local.project

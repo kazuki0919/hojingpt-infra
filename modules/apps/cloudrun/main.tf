@@ -16,6 +16,10 @@ data "google_cloud_run_service" "app" {
   location = var.location
 }
 
+output service_name {
+  value = data.google_cloud_run_service.app.name
+}
+
 output "max_size" {
   value = tonumber(data.google_cloud_run_service.app.template[0].metadata[0].annotations["autoscaling.knative.dev/maxScale"])
 }
