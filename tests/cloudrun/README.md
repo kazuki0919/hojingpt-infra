@@ -13,3 +13,5 @@ gcloud run deploy yoda-test --image gcr.io/hojingpt-staging/yoda-test  \
   --allow-unauthenticated --ingress=all --port=8080 \
   --min-instances=0 --concurrency=100 --max-instances=20
 ```
+
+gcloud run service delete yoda-test
