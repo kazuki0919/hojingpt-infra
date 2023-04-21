@@ -362,6 +362,144 @@ resource "google_monitoring_alert_policy" "redis_key_eviction" {
 }
 
 ######################################################################################
+# MySQL
+######################################################################################
+resource "google_monitoring_alert_policy" "mysql_high_cpu_usage" {
+  display_name          = "${var.name}${var.name_suffix} mysql high cpu usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud SQL Database - CPU utilization"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="cloudsql_database" AND
+        metric.type="cloudsql.googleapis.com/database/cpu/utilization"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+        group_by_fields      = ["metadata.system_labels.name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "mysql_high_memory_usage" {
+  display_name          = "${var.name}${var.name_suffix} mysql high memory usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud SQL Database - Memory utilization"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="cloudsql_database" AND
+        metric.type="cloudsql.googleapis.com/database/memory/utilization"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+        group_by_fields      = ["metadata.system_labels.name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "mysql_high_disk_usage" {
+  display_name          = "${var.name}${var.name_suffix} mysql high disk usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Cloud SQL Database - Disk utilization"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="cloudsql_database" AND
+        metric.type="cloudsql.googleapis.com/database/disk/utilization"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+        group_by_fields      = ["metadata.system_labels.name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+######################################################################################
 # Spanner
 ######################################################################################
 # see: https://cloud.google.com/spanner/docs/monitoring-cloud?hl=ja#24-hour-rolling-average-cpu
