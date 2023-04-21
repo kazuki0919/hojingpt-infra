@@ -1,6 +1,9 @@
 # hojingpt-infra
 法人GPT's infrastructure managed by terraform.
 
+# System Design Diagram
+- https://app.diagrams.net/#G1nreqrtd-bwEGPyTbRpOivBrN-RqbMAwX
+
 # How to setup terraform
 
 I would recommend installing [tfenv](https://github.com/tfutils/tfenv) instead of installing terraform.
