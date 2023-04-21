@@ -26,6 +26,13 @@ resource "google_sql_database_instance" "default" {
   settings {
     tier                        = var.tier
     deletion_protection_enabled = true
+    # availability_type = "REGIONAL"
+
+    # backup_configuration {
+    #   enabled    = true
+    #   binary_log_enabled = true
+    #   start_time = "00:00"
+    # }
 
     insights_config {
       query_insights_enabled  = true
@@ -40,10 +47,6 @@ resource "google_sql_database_instance" "default" {
       hour         = 18
       update_track = "canary"
     }
-  }
-
-  lifecycle {
-    ignore_changes = [settings[0].deletion_protection_enabled]
   }
 }
 
