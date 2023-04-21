@@ -78,6 +78,15 @@ module "redis" {
   network_id  = module.network.default_network.id
 }
 
+module "mysql" {
+  source           = "../../modules/database/mysql"
+  name             = "hojingpt"
+  name_suffix      = "-${local.env}"
+  region           = local.region
+  database_version = "MYSQL_8_0_26"
+  tier             = "db-custom-2-8192"
+}
+
 module "app" {
   source   = "../../modules/apps/cloudrun"
   project  = local.project
