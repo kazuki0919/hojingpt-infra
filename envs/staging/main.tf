@@ -170,11 +170,10 @@ module "monitoring" {
 #   function_bucket = module.storage.function_source_bucket.name
 # }
 
-# TODO: apply after 4/22
-# module "logging" {
-#   source      = "../../modules/logging"
-#   project     = local.project
-#   location    = local.region
-#   name        = "hojingpt"
-#   name_suffix = "-${local.env}"
-# }
+module "logging" {
+  source      = "../../modules/logging"
+  project     = local.project
+  location    = local.region
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
+}
