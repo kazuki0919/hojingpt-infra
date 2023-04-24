@@ -81,6 +81,22 @@ module "redis" {
   network_id         = module.network.default_network.id
 }
 
+module "mysql" {
+  source             = "../../modules/database/mysql"
+  name               = "hojingpt"
+  name_suffix        = "-${local.env}"
+  region             = local.region
+  database_version   = "MYSQL_8_0_26"
+  tier               = "db-custom-4-15360"
+  availability_type  = "REGIONAL"
+  allocated_ip_range = module.network.default_global_address.name
+  private_network    = module.network.default_network.id
+
+  maintenance_window = {
+    update_track = "stable"
+  }
+}
+
 module "app" {
   source   = "../../modules/apps/cloudrun"
   project  = local.project

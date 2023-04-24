@@ -79,12 +79,15 @@ module "redis" {
 }
 
 module "mysql" {
-  source           = "../../modules/database/mysql"
-  name             = "hojingpt"
-  name_suffix      = "-${local.env}"
-  region           = local.region
-  database_version = "MYSQL_8_0_26"
-  tier             = "db-custom-2-8192"
+  source             = "../../modules/database/mysql"
+  name               = "hojingpt"
+  name_suffix        = "-${local.env}"
+  region             = local.region
+  database_version   = "MYSQL_8_0_26"
+  tier               = "db-custom-2-8192"
+  availability_type  = "ZONAL"
+  allocated_ip_range = module.network.default_global_address.name
+  private_network    = module.network.default_network.id
 }
 
 module "app" {
