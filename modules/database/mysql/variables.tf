@@ -73,3 +73,19 @@ variable "maintenance_window" {
   })
   default = {}
 }
+
+variable "database_flags" {
+  type        = map(string)
+  default     = {}
+  description = "see: https://cloud.google.com/mysql/cloudsql-setup"
+}
+
+locals {
+  default_database_flags = {
+    log_output      = "FILE"
+    slow_query_log  = "on"
+    long_query_time = "0.5" # seconds
+  }
+
+  database_flags = merge(local.default_database_flags, var.database_flags)
+}

@@ -26,6 +26,14 @@ resource "google_sql_database_instance" "default" {
       }
     }
 
+    dynamic "database_flags" {
+      for_each = local.database_flags
+      content {
+        name  = database_flags.key
+        value = database_flags.value
+      }
+    }
+
     dynamic "insights_config" {
       for_each = var.query_insights == null ? [] : [var.query_insights]
       content {

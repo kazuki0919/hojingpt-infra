@@ -499,6 +499,38 @@ resource "google_monitoring_alert_policy" "mysql_high_disk_usage" {
   }
 }
 
+resource "google_monitoring_alert_policy" "mysql_slow_query" {
+  display_name          = "${var.name}${var.name_suffix} mysql slow query"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+
+    notification_rate_limit {
+      period = "300s"
+    }
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "Log match condition"
+
+    condition_matched_log {
+      filter = <<-EOT
+        resource.type="cloudsql_database"
+        log_name="projects/${var.project}/logs/cloudsql.googleapis.com%2Fmysql-slow.log"
+      EOT
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
 ######################################################################################
 # Spanner
 ######################################################################################
