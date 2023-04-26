@@ -19,14 +19,13 @@ Then, The key for each service account is stored in Secret Manager.
 - [staging env's service account json key](https://console.cloud.google.com/security/secret-manager/secret/service-account-terraform/versions?project=hojingpt-staging)
 - [prod env's service account json key](https://console.cloud.google.com/security/secret-manager/secret/service-account-terraform/versions?project=hojingpt-prod)
 
-To run terraform locally, first download and store this secret key.
-Then, set the following environment variables so that the service account key is recognized
+The service account key was prepared for automation, but so far it has not been used.
+To run terraform locally, please use gcloud
 
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/Users/yyoda/.gcp/service_accounts/hojingpt/hojingpt-xxxx.json"
+brew install --cask google-cloud-sdk
+gcloud auth login
 ```
-
-This completes the configuration, though, If you switch environments and run terraform, you will need to modify the environment variables as well, so it is recommended to use a tool such as [direnv](https://github.com/direnv/direnv).
 
 # CI/CD
 
