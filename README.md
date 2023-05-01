@@ -2,8 +2,7 @@
 法人GPT's infrastructure managed by terraform.
 
 # System Design Diagram
-- v1.0: https://app.diagrams.net/#G1nreqrtd-bwEGPyTbRpOivBrN-RqbMAwX
-- v2.0 (latest): https://app.diagrams.net/#G16GuwDIzc4Z4yW9vRCQu8r5jJRrcqWvCQ
+- https://app.diagrams.net/#G1nreqrtd-bwEGPyTbRpOivBrN-RqbMAwX
 
 # How to setup terraform
 
