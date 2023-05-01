@@ -76,15 +76,15 @@ resource "google_compute_instance_template" "default" {
   }
 }
 
-resource "google_compute_region_instance_group_manager" "default" {
-  name               = var.name
-  base_instance_name = var.name
-  project            = var.project
-  region             = var.region
-  description        = "Bastion Host Managed Instance Group"
-  target_size        = 1
+# resource "google_compute_region_instance_group_manager" "default" {
+#   name               = var.name
+#   base_instance_name = var.name
+#   project            = var.project
+#   region             = var.region
+#   description        = "Bastion Host Managed Instance Group"
+#   target_size        = 1
 
-  version {
-    instance_template = google_compute_instance_template.default.id
-  }
-}
+#   version {
+#     instance_template = google_compute_instance_template.default.id
+#   }
+# }

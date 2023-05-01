@@ -535,141 +535,141 @@ resource "google_monitoring_alert_policy" "mysql_slow_query" {
 # Spanner
 ######################################################################################
 # see: https://cloud.google.com/spanner/docs/monitoring-cloud?hl=ja#24-hour-rolling-average-cpu
-resource "google_monitoring_alert_policy" "spanner_high_cpu_usage" {
-  display_name          = "${var.name}${var.name_suffix} spanner high cpu usage"
-  notification_channels = [var.emergency_channel]
+# resource "google_monitoring_alert_policy" "spanner_high_cpu_usage" {
+#   display_name          = "${var.name}${var.name_suffix} spanner high cpu usage"
+#   notification_channels = [var.emergency_channel]
 
-  alert_strategy {
-    auto_close = "1800s"
-  }
+#   alert_strategy {
+#     auto_close = "1800s"
+#   }
 
-  combiner = "OR"
+#   combiner = "OR"
 
-  conditions {
-    display_name = "Cloud Spanner Instance - CPU utilization by priority"
+#   conditions {
+#     display_name = "Cloud Spanner Instance - CPU utilization by priority"
 
-    condition_threshold {
-      comparison              = "COMPARISON_GT"
-      duration                = "300s"
-      threshold_value         = 0.65
-      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+#     condition_threshold {
+#       comparison              = "COMPARISON_GT"
+#       duration                = "300s"
+#       threshold_value         = 0.65
+#       evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
 
-      filter = <<-EOT
-        resource.type="spanner_instance" AND
-        metric.type="spanner.googleapis.com/instance/cpu/utilization_by_priority" AND
-        metric.labels.priority="high"
-      EOT
+#       filter = <<-EOT
+#         resource.type="spanner_instance" AND
+#         metric.type="spanner.googleapis.com/instance/cpu/utilization_by_priority" AND
+#         metric.labels.priority="high"
+#       EOT
 
-      aggregations {
-        alignment_period     = "120s"
-        per_series_aligner   = "ALIGN_MEAN"
-        cross_series_reducer = "REDUCE_SUM"
-        group_by_fields      = ["resource.label.instance_id"]
-      }
+#       aggregations {
+#         alignment_period     = "120s"
+#         per_series_aligner   = "ALIGN_MEAN"
+#         cross_series_reducer = "REDUCE_SUM"
+#         group_by_fields      = ["resource.label.instance_id"]
+#       }
 
-      trigger {
-        count   = 1
-        percent = 0
-      }
-    }
-  }
+#       trigger {
+#         count   = 1
+#         percent = 0
+#       }
+#     }
+#   }
 
-  user_labels = var.labels
+#   user_labels = var.labels
 
-  lifecycle {
-    ignore_changes = [enabled]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [enabled]
+#   }
+# }
 
-resource "google_monitoring_alert_policy" "spanner_high_processing_unit_usage" {
-  display_name          = "${var.name}${var.name_suffix} spanner high processing unit usage"
-  notification_channels = [var.emergency_channel]
+# resource "google_monitoring_alert_policy" "spanner_high_processing_unit_usage" {
+#   display_name          = "${var.name}${var.name_suffix} spanner high processing unit usage"
+#   notification_channels = [var.emergency_channel]
 
-  alert_strategy {
-    auto_close = "1800s"
-  }
+#   alert_strategy {
+#     auto_close = "1800s"
+#   }
 
-  combiner = "OR"
+#   combiner = "OR"
 
-  conditions {
-    display_name = "Cloud Spanner Instance - Processing units"
+#   conditions {
+#     display_name = "Cloud Spanner Instance - Processing units"
 
-    condition_threshold {
-      comparison              = "COMPARISON_GT"
-      duration                = "300s"
-      threshold_value         = var.spanner.max_size * 0.7
-      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+#     condition_threshold {
+#       comparison              = "COMPARISON_GT"
+#       duration                = "300s"
+#       threshold_value         = var.spanner.max_size * 0.7
+#       evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
 
-      filter = <<-EOT
-        resource.type="spanner_instance" AND
-        metric.type="spanner.googleapis.com/instance/processing_units"
-      EOT
+#       filter = <<-EOT
+#         resource.type="spanner_instance" AND
+#         metric.type="spanner.googleapis.com/instance/processing_units"
+#       EOT
 
-      aggregations {
-        alignment_period     = "300s"
-        per_series_aligner   = "ALIGN_MAX"
-        cross_series_reducer = "REDUCE_MAX"
-        group_by_fields      = ["resource.label.instance_id"]
-      }
+#       aggregations {
+#         alignment_period     = "300s"
+#         per_series_aligner   = "ALIGN_MAX"
+#         cross_series_reducer = "REDUCE_MAX"
+#         group_by_fields      = ["resource.label.instance_id"]
+#       }
 
-      trigger {
-        count   = 1
-        percent = 0
-      }
-    }
-  }
+#       trigger {
+#         count   = 1
+#         percent = 0
+#       }
+#     }
+#   }
 
-  user_labels = var.labels
+#   user_labels = var.labels
 
-  lifecycle {
-    ignore_changes = [enabled]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [enabled]
+#   }
+# }
 
-resource "google_monitoring_alert_policy" "spanner_high_storage_usage" {
-  display_name          = "${var.name}${var.name_suffix} spanner high storage usage"
-  notification_channels = [var.emergency_channel]
+# resource "google_monitoring_alert_policy" "spanner_high_storage_usage" {
+#   display_name          = "${var.name}${var.name_suffix} spanner high storage usage"
+#   notification_channels = [var.emergency_channel]
 
-  alert_strategy {
-    auto_close = "1800s"
-  }
+#   alert_strategy {
+#     auto_close = "1800s"
+#   }
 
-  combiner = "OR"
+#   combiner = "OR"
 
-  conditions {
-    display_name = "Cloud Spanner Instance - Storage utilization"
+#   conditions {
+#     display_name = "Cloud Spanner Instance - Storage utilization"
 
-    condition_threshold {
-      comparison              = "COMPARISON_GT"
-      duration                = "300s"
-      threshold_value         = 0.7
-      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+#     condition_threshold {
+#       comparison              = "COMPARISON_GT"
+#       duration                = "300s"
+#       threshold_value         = 0.7
+#       evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
 
-      filter = <<-EOT
-        resource.type="spanner_instance" AND
-        metric.type="spanner.googleapis.com/instance/storage/utilization"
-      EOT
+#       filter = <<-EOT
+#         resource.type="spanner_instance" AND
+#         metric.type="spanner.googleapis.com/instance/storage/utilization"
+#       EOT
 
-      aggregations {
-        alignment_period     = "300s"
-        per_series_aligner   = "ALIGN_MAX"
-        cross_series_reducer = "REDUCE_MAX"
-        group_by_fields      = ["resource.label.instance_id"]
-      }
+#       aggregations {
+#         alignment_period     = "300s"
+#         per_series_aligner   = "ALIGN_MAX"
+#         cross_series_reducer = "REDUCE_MAX"
+#         group_by_fields      = ["resource.label.instance_id"]
+#       }
 
-      trigger {
-        count   = 1
-        percent = 0
-      }
-    }
-  }
+#       trigger {
+#         count   = 1
+#         percent = 0
+#       }
+#     }
+#   }
 
-  user_labels = var.labels
+#   user_labels = var.labels
 
-  lifecycle {
-    ignore_changes = [enabled]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [enabled]
+#   }
+# }
 
 
 ######################################################################################

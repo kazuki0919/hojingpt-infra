@@ -40,11 +40,11 @@ variable "labels" {
   default = {}
 }
 
-variable "spanner" {
-  type = object({
-    max_size = number
-  })
-}
+# variable "spanner" {
+#   type = object({
+#     max_size = number
+#   })
+# }
 
 variable "cloudrun" {
   type = object({

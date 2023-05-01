@@ -31,44 +31,44 @@ module "storage" {
   region      = local.region
 }
 
-module "spanner" {
-  source           = "../../modules/database/spanner"
-  project          = local.project
-  name             = "hojingpt-instance-${local.env}"
-  db               = "hojingpt"
-  config           = "regional-asia-northeast1"
-  processing_units = 100
+# module "spanner" {
+#   source           = "../../modules/database/spanner"
+#   project          = local.project
+#   name             = "hojingpt-instance-${local.env}"
+#   db               = "hojingpt"
+#   config           = "regional-asia-northeast1"
+#   processing_units = 100
 
-  labels = {
-    env     = local.env
-    service = "hojingpt"
-    source  = "spanner"
-  }
-}
+#   labels = {
+#     env     = local.env
+#     service = "hojingpt"
+#     source  = "spanner"
+#   }
+# }
 
-module "spanner_autoscaler" {
-  source             = "../../modules/database/spanner/autoscaler"
-  project            = local.project
-  region             = local.region
-  name               = "hojingpt"
-  name_suffix        = "-${local.env}"
-  spanner_name       = module.spanner.name
-  min_size           = 100
-  max_size           = 2000
-  monitoring_enabled = true
-  function_bucket    = module.storage.function_source_bucket.name
-}
+# module "spanner_autoscaler" {
+#   source             = "../../modules/database/spanner/autoscaler"
+#   project            = local.project
+#   region             = local.region
+#   name               = "hojingpt"
+#   name_suffix        = "-${local.env}"
+#   spanner_name       = module.spanner.name
+#   min_size           = 100
+#   max_size           = 2000
+#   monitoring_enabled = true
+#   function_bucket    = module.storage.function_source_bucket.name
+# }
 
-module "spanner_scheduled_backups" {
-  source          = "../../modules/database/spanner/scheduled-backups"
-  project         = local.project
-  region          = local.region
-  name            = "hojingpt"
-  name_suffix     = "-${local.env}"
-  function_bucket = module.storage.function_source_bucket.name
-  instance_id     = module.spanner.name
-  database_id     = module.spanner.db
-}
+# module "spanner_scheduled_backups" {
+#   source          = "../../modules/database/spanner/scheduled-backups"
+#   project         = local.project
+#   region          = local.region
+#   name            = "hojingpt"
+#   name_suffix     = "-${local.env}"
+#   function_bucket = module.storage.function_source_bucket.name
+#   instance_id     = module.spanner.name
+#   database_id     = module.spanner.db
+# }
 
 module "redis" {
   source      = "../../modules/cache/redis"
@@ -150,9 +150,9 @@ module "monitoring" {
     ]
   }
 
-  spanner = {
-    max_size = module.spanner_autoscaler.max_size
-  }
+  # spanner = {
+  #   max_size = module.spanner_autoscaler.max_size
+  # }
 
   cloudrun = {
     max_size        = module.app.max_size
