@@ -177,3 +177,17 @@ module "logging" {
   name        = "hojingpt"
   name_suffix = "-${local.env}"
 }
+
+module "gce_shared" {
+  source      = "../../modules/apps/gce/shared"
+  name        = "hojingpt"
+  name_suffix = "-${local.env}"
+  network_id  = module.network.default_network.id
+}
+
+module "llama_index_demo" {
+  source                = "../../modules/apps/gce"
+  name                  = "givery-llama-index-demo"
+  service_account_email = module.gce_shared.service_account_email
+  subnetwork_id         = module.network.default_subnetwork.name
+}
