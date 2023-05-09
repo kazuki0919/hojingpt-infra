@@ -903,3 +903,96 @@ resource "google_monitoring_alert_policy" "function_failure" {
 #     ignore_changes = [enabled]
 #   }
 # }
+
+######################################################################################
+# Compute Engine
+######################################################################################
+resource "google_monitoring_alert_policy" "vm_instance_high_cpu_usage" {
+  display_name          = "${var.name}${var.name_suffix} vm instance high cpu usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "VM Instance - CPU utilization"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 0.7
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="gce_instance" AND
+        metric.type="compute.googleapis.com/instance/cpu/utilization"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+        group_by_fields      = ["metric.label.instance_name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "google_monitoring_alert_policy" "vm_instance_high_memory_usage" {
+  display_name          = "${var.name}${var.name_suffix} vm instance high memory usage"
+  notification_channels = [var.emergency_channel]
+
+  alert_strategy {
+    auto_close = "1800s"
+  }
+
+  combiner = "OR"
+
+  conditions {
+    display_name = "VM Instance - VM Memory Used"
+
+    condition_threshold {
+      comparison              = "COMPARISON_GT"
+      duration                = "300s"
+      threshold_value         = 1610612736 # 1.5GiB
+      evaluation_missing_data = "EVALUATION_MISSING_DATA_INACTIVE"
+
+      filter = <<-EOT
+        resource.type="gce_instance" AND
+        metric.type="compute.googleapis.com/instance/memory/balloon/ram_used"
+      EOT
+
+      aggregations {
+        alignment_period     = "300s"
+        per_series_aligner   = "ALIGN_MEAN"
+        cross_series_reducer = "REDUCE_MEAN"
+        group_by_fields      = ["metric.label.instance_name"]
+      }
+
+      trigger {
+        count   = 1
+        percent = 0
+      }
+    }
+  }
+
+  user_labels = var.labels
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
