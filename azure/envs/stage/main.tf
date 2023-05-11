@@ -12,15 +12,48 @@ provider "azurerm" {
 }
 
 locals {
-  name     = "hojingpt"
-  env      = "stage"
-  location = "japaneast"
-  rgname   = "rg-${local.name}-${local.env}"
+  name = "hojingpt"
+  env  = "stage"
+  tags = {}
+
+  subnet_app     = "snet-${local.name}-${local.env}-001"
+  subnet_bastion = "snet-${local.name}-${local.env}-002"
 }
 
-# resource "azurerm_virtual_network" "public" {
-#   name                = "vnet-${local.name}-${local.location}-stage"
-#   address_space       = ["10.100.0.0/16"]
-#   location            = local.location
-#   resource_group_name = local.rgname
-# }
+data "azurerm_resource_group" "main" {
+  name = "rg-${local.name}-${local.env}"
+}
+
+module "network" {
+  source              = "../../modules/network"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "vnet-${local.name}-stage-001"
+  address_space       = ["10.0.0.0/16"]
+
+  subnets = {
+    "${local.subnet_app}" = {
+      address_prefix    = ["10.0.0.0/23"]
+      service_endpoints = ["Microsoft.KeyVault"]
+    }
+    "${local.subnet_bastion}" = {
+      address_prefix    = ["10.0.2.0/24"]
+      service_endpoints = ["Microsoft.KeyVault"]
+    }
+  }
+
+  tags = local.tags
+}
+
+module "app" {
+  source                     = "../../modules/app"
+  resource_group_name        = data.azurerm_resource_group.main.name
+  location                   = data.azurerm_resource_group.main.location
+  registory_name             = "cr${local.name}${local.env}"
+  app_name                   = "${local.name}-${local.env}-001"
+
+  tags = {
+    owner   = "yusuke.yoda"
+    created = "2023.05.10"
+  }
+}
