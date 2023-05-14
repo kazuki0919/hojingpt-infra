@@ -30,6 +30,10 @@ variable "sku_name" {
   default = "Premium_AzureFrontDoor" # or Standard_AzureFrontDoor
 }
 
+variable "waf_policy_name" {
+  type = string
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -123,7 +127,7 @@ resource "azurerm_cdn_frontdoor_route" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
-  name                              = "wafrgHoujingptStage"
+  name                              = var.waf_policy_name
   resource_group_name               = var.resource_group_name
   sku_name                          = var.sku_name
   enabled                           = true

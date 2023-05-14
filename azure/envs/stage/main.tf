@@ -12,12 +12,10 @@ provider "azurerm" {
 }
 
 locals {
-  env          = "stage"
-  tags         = {}
-  subnet_app   = "snet-hojingpt-${local.env}-001"
-  subnet_mysql = "snet-hojingpt-${local.env}-002"
-  domain_name  = "staging-hojingpt-com"
-  host_name    = "staging.hojingpt.com"
+  env         = "stage"
+  tags        = {}
+  domain_name = "staging-hojingpt-com"
+  host_name   = "staging.hojingpt.com"
 }
 
 data "azurerm_resource_group" "main" {
@@ -35,25 +33,7 @@ module "network" {
   location            = data.azurerm_resource_group.main.location
   name                = "vnet-hojingpt-${local.env}-001"
   address_space       = ["10.0.0.0/16"]
-
-  subnets = {
-    "${local.subnet_app}" = {
-      address_prefix    = ["10.0.0.0/23"]
-      service_endpoints = ["Microsoft.KeyVault"]
-    }
-    "${local.subnet_mysql}" = {
-      address_prefix    = ["10.0.2.0/24"]
-      service_endpoints = ["Microsoft.KeyVault"]
-      delegations = [
-        {
-          name               = "dlg-Microsoft.DBforMySQL-flexibleServers"
-          service_delegation = { name = "Microsoft.DBforMySQL/flexibleServers", actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"] }
-        }
-      ]
-    }
-  }
-
-  tags = local.tags
+  tags                = local.tags
 }
 
 module "security" {
@@ -70,6 +50,11 @@ module "app" {
   registory_name      = "crhojingpt${local.env}"
   app_name            = "hojingpt-${local.env}-001"
   user_assigned_ids   = [module.security.user_assigned_identity.id]
+
+  network = {
+    name  = module.network.vnet.name
+    cidrs = ["10.0.0.0/23"]
+  }
 
   tags = {
     owner   = "yusuke.yoda"
@@ -94,8 +79,41 @@ module "frontdoor" {
     dns_zone_id = data.azurerm_dns_zone.main.id
   }
 
+  waf_policy_name = "wafrgHoujingptStage"
+
   tags = {
     owner   = "yusuke.yoda"
     created = "2023.05.10"
   }
+}
+
+module "mysql" {
+  source              = "../../modules/database/mysql"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  alias_name          = "houjingpt-${local.env}"
+  sku_name            = "B_Standard_B1s"
+  dns_vnet_link_name  = "mkctbf32nyz7e" #TODO: random
+  db_version          = "8.0.21"
+  db_name             = "hojingpt"
+
+  network = {
+    name  = module.network.vnet.name
+    id    = module.network.vnet.id
+    cidrs = ["10.0.2.0/24"]
+  }
+
+  storage = {
+    iops    = 360
+    size_gb = 20
+  }
+}
+
+module "redis" {
+  source               = "../../modules/cache/redis"
+  resource_group_name  = data.azurerm_resource_group.main.name
+  location             = data.azurerm_resource_group.main.location
+  name                 = "houjingpt-${local.env}"
+  storage_account_name = "sthojingptredis${local.env}"
 }

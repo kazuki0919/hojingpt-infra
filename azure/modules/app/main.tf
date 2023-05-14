@@ -23,6 +23,13 @@ variable "user_assigned_ids" {
   type = list(string)
 }
 
+variable "network" {
+  type = object({
+    name  = string
+    cidrs = list(string)
+  })
+}
+
 resource "azurerm_container_registry" "app" {
   name                = var.registory_name
   resource_group_name = var.resource_group_name
@@ -53,6 +60,14 @@ resource "azurerm_container_registry" "app" {
   }
 
   tags = var.tags
+}
+
+resource "azurerm_subnet" "app" {
+  name                 = "snet-${var.app_name}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.network.name
+  address_prefixes     = var.network.cidrs
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 data "azurerm_container_app_environment" "app" {
