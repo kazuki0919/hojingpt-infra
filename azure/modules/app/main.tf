@@ -19,12 +19,40 @@ variable "tags" {
   default = {}
 }
 
+variable "user_assigned_ids" {
+  type = list(string)
+}
+
 resource "azurerm_container_registry" "app" {
   name                = var.registory_name
   resource_group_name = var.resource_group_name
   location            = var.location
-  sku                 = "Basic"
-  tags                = var.tags
+
+  admin_enabled                 = true
+  anonymous_pull_enabled        = false
+  data_endpoint_enabled         = false
+  export_policy_enabled         = true
+  network_rule_bypass_option    = "AzureServices"
+  public_network_access_enabled = true
+  quarantine_policy_enabled     = false
+  zone_redundancy_enabled       = false
+  sku                           = "Basic"
+
+  identity {
+    identity_ids = var.user_assigned_ids
+    type         = "UserAssigned"
+  }
+
+  retention_policy {
+    days    = 7
+    enabled = false
+  }
+
+  trust_policy {
+    enabled = false
+  }
+
+  tags = var.tags
 }
 
 data "azurerm_container_app_environment" "app" {
