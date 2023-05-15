@@ -17,12 +17,12 @@ variable "capacity" {
 
 variable "family" {
   type    = string
-  default = "P"
+  default = "C"
 }
 
 variable "sku_name" {
   type    = string
-  default = "Premium"
+  default = "Standard" # Basic, Standard, Premium
 }
 
 variable "redis_version" {
@@ -50,31 +50,31 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = var.capacity
   family                        = var.family
   sku_name                      = var.sku_name
-  enable_non_ssl_port           = false
+  enable_non_ssl_port           = true
   minimum_tls_version           = "1.2"
   public_network_access_enabled = false
   redis_version                 = var.redis_version
 
-  identity {
-    identity_ids = []
-    type         = "SystemAssigned"
-  }
+  # identity {
+  #   identity_ids = []
+  #   type         = "SystemAssigned"
+  # }
 
-  redis_configuration {
-    rdb_backup_enabled            = true
-    rdb_backup_frequency          = 15
-    rdb_backup_max_snapshot_count = 1
-    # rdb_storage_connection_string = azurerm_storage_account.rdb_storage.primary_connection_string
-    # maxmemory_policy              = "volatile-lru"
-  }
+  # redis_configuration {
+  #   rdb_backup_enabled            = true
+  #   rdb_backup_frequency          = 15
+  #   rdb_backup_max_snapshot_count = 1
+  #   # rdb_storage_connection_string = azurerm_storage_account.rdb_storage.primary_connection_string
+  #   # maxmemory_policy              = "volatile-lru"
+  # }
 
-  lifecycle {
-    ignore_changes = [
-      #HACK: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/redis_cache
-      redis_configuration.0.rdb_storage_connection_string,
-      redis_configuration.0.maxmemory_policy,
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [
+  #     #HACK: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/redis_cache
+  #     redis_configuration.0.rdb_storage_connection_string,
+  #     redis_configuration.0.maxmemory_policy,
+  #   ]
+  # }
 }
 
 # data "azurerm_storage_account" "redis" {
