@@ -22,6 +22,11 @@ data "azurerm_resource_group" "main" {
   name = "rg-hojingpt-${local.env}"
 }
 
+data "azurerm_lb" "kubernetes_internal" {
+  name                = "kubernetes-internal"
+  resource_group_name = "mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast"
+}
+
 module "network" {
   source              = "../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -45,6 +50,8 @@ module "app" {
   registory_name      = "crhojingpt${local.env}"
   app_name            = "hojingpt-${local.env}-001"
   user_assigned_ids   = [module.security.user_assigned_identity.id]
+
+  load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
 
   network = {
     name  = module.network.vnet.name
@@ -109,7 +116,16 @@ module "redis" {
   source               = "../../modules/cache/redis"
   resource_group_name  = data.azurerm_resource_group.main.name
   location             = data.azurerm_resource_group.main.location
-  name                 = "houjingpt-${local.env}"
+  name                 = "hojingpt-${local.env}"
+  alias_name           = "houjingpt-${local.env}"
   storage_account_name = "sthojingptredis${local.env}"
   user_assigned_ids    = [module.security.user_assigned_identity.id]
+  subnet_id            = module.app.subnet.id
+
+  private_service_connection_suffix = "130d0c9d-f74f-4f81-b0f6-c76ec0d36016"
+
+  tags = {
+    owner   = "yusuke.yoda"
+    created = "2023.05.10"
+  }
 }

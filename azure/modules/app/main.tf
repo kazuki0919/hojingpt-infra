@@ -30,6 +30,10 @@ variable "network" {
   })
 }
 
+variable "load_balancer_frontend_ip_configuration_ids" {
+  type = list(string)
+}
+
 resource "azurerm_container_registry" "app" {
   name                = var.registory_name
   resource_group_name = var.resource_group_name
@@ -80,7 +84,24 @@ data "azurerm_container_app" "app" {
   resource_group_name = var.resource_group_name
 }
 
-output "registory" {
+resource "azurerm_private_link_service" "main" {
+  count               = length(var.load_balancer_frontend_ip_configuration_ids) > 0 ? 1 : 0
+  name                = "pl-${var.app_name}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  load_balancer_frontend_ip_configuration_ids = var.load_balancer_frontend_ip_configuration_ids
+
+  nat_ip_configuration {
+    name      = "snet-${var.app_name}-1"
+    primary   = true
+    subnet_id = azurerm_subnet.app.id
+  }
+
+  tags = var.tags
+}
+
+output "registry" {
   value = azurerm_container_registry.app
 }
 
@@ -90,4 +111,8 @@ output "env" {
 
 output "app" {
   value = data.azurerm_container_app.app
+}
+
+output "subnet" {
+  value = azurerm_subnet.app
 }
