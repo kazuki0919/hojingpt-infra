@@ -22,11 +22,6 @@ data "azurerm_resource_group" "main" {
   name = "rg-hojingpt-${local.env}"
 }
 
-data "azurerm_dns_zone" "main" {
-  name                = local.host_name
-  resource_group_name = data.azurerm_resource_group.main.name
-}
-
 module "network" {
   source              = "../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -69,14 +64,14 @@ module "frontdoor" {
   name                = "houjingpt-${local.env}-jpeast"
 
   app = {
-    host                   = "ca-hojingpt-stage-001.purplewater-a7ff9cea.japaneast.azurecontainerapps.io"
+    host                   = module.app.app.ingress.0.fqdn
     private_link_target_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/privateLinkServices/pl-hojingpt-stage-001"
   }
 
   domain = {
     name        = local.domain_name
     host_name   = local.host_name
-    dns_zone_id = data.azurerm_dns_zone.main.id
+    dns_zone_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/dnsZones/staging.hojingpt.com"  #TODO
   }
 
   waf_policy_name = "wafrgHoujingptStage"
@@ -116,4 +111,5 @@ module "redis" {
   location             = data.azurerm_resource_group.main.location
   name                 = "houjingpt-${local.env}"
   storage_account_name = "sthojingptredis${local.env}"
+  user_assigned_ids    = [module.security.user_assigned_identity.id]
 }

@@ -34,6 +34,10 @@ variable "storage_account_name" {
   type = string
 }
 
+variable "user_assigned_ids" {
+  type = list(string)
+}
+
 # resource "azurerm_storage_account" "rdb_storage" {
 #   name                              = var.storage_account_name
 #   resource_group_name               = var.resource_group_name
@@ -55,10 +59,10 @@ resource "azurerm_redis_cache" "main" {
   public_network_access_enabled = false
   redis_version                 = var.redis_version
 
-  # identity {
-  #   identity_ids = []
-  #   type         = "SystemAssigned"
-  # }
+  identity {
+    identity_ids = var.user_assigned_ids
+    type         = "UserAssigned"
+  }
 
   # redis_configuration {
   #   rdb_backup_enabled            = true
