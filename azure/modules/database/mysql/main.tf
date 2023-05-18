@@ -16,9 +16,8 @@ variable "alias_name" {
 
 variable "network" {
   type = object({
-    name  = string
-    id    = string
-    cidrs = list(string)
+    vnet_id   = string
+    subnet_id = string
   })
 }
 
@@ -56,27 +55,8 @@ variable "storage" {
   })
 }
 
-resource "azurerm_subnet" "main" {
-  address_prefixes     = var.network.cidrs
-  name                 = "snet-${var.name}-002"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = var.network.name
-
-  service_endpoints = [
-    "Microsoft.KeyVault",
-    # "Microsoft.Storage",
-  ]
-
-  delegation {
-    name = "dlg-Microsoft.DBforMySQL-flexibleServers"
-
-    service_delegation {
-      name = "Microsoft.DBforMySQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
+variable "key_vault_id" {
+  type = string
 }
 
 resource "azurerm_private_dns_zone" "main" {
@@ -88,7 +68,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   name                  = var.dns_vnet_link_name
   private_dns_zone_name = azurerm_private_dns_zone.main.name
   resource_group_name   = var.resource_group_name
-  virtual_network_id    = var.network.id
+  virtual_network_id    = var.network.vnet_id
 }
 
 resource "azurerm_mysql_flexible_server" "main" {
@@ -96,7 +76,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   location                     = var.location
   name                         = "mysql-${var.alias_name}"
   backup_retention_days        = var.backup_retention_days
-  delegated_subnet_id          = azurerm_subnet.main.id
+  delegated_subnet_id          = var.network.subnet_id
   geo_redundant_backup_enabled = false
   private_dns_zone_id          = azurerm_private_dns_zone.main.id
   sku_name                     = var.sku_name

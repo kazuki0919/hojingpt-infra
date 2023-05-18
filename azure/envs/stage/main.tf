@@ -13,9 +13,24 @@ provider "azurerm" {
 
 locals {
   env         = "stage"
-  tags        = {}
   domain_name = "staging-hojingpt-com"
   host_name   = "staging.hojingpt.com"
+
+  allow_ips = [
+    "126.208.101.129/32", # takahito.yamatoya's home IP. To be removed at a later.
+    "150.249.202.236/32", # givery's office 8F
+    "150.249.192.10/32",  # givery's office 7F
+  ]
+
+  users = {
+    "ad94dd20-bb7f-46e6-a326-73925eef35ab" = "yusuke.yoda@givery.onmicrosoft.com"
+    "7f9d0fd2-8d30-48d4-86fc-9cb0ddcb5e1f" = "takahito.yamatoya@givery.onmicrosoft.com"
+  }
+
+  tags = {
+    owner   = "yusuke.yoda"
+    created = "2023.05.10"
+  }
 }
 
 data "azurerm_resource_group" "main" {
@@ -33,6 +48,17 @@ module "network" {
   location            = data.azurerm_resource_group.main.location
   name                = "vnet-hojingpt-${local.env}-001"
   address_space       = ["10.0.0.0/16"]
+
+  app = {
+    name  = "snet-hojingpt-${local.env}-001"
+    cidrs = ["10.0.0.0/23"]
+  }
+
+  mysql = {
+    name  = "snet-hojingpt-${local.env}-002"
+    cidrs = ["10.0.2.0/24"]
+  }
+
   tags                = local.tags
 }
 
@@ -41,6 +67,17 @@ module "security" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
+  alias_name          = "houjingpt-${local.env}"
+  id_principal_id     = module.security.user_assigned_identity.principal_id
+  kv_allow_ips        = local.allow_ips
+  kv_users            = local.users
+
+  kv_subnets = [
+    module.network.subnet_app.id,
+    module.network.subnet_mysql.id,
+  ]
+
+  tags = local.tags
 }
 
 module "app" {
@@ -50,18 +87,10 @@ module "app" {
   registory_name      = "crhojingpt${local.env}"
   app_name            = "hojingpt-${local.env}-001"
   user_assigned_ids   = [module.security.user_assigned_identity.id]
+  subnet_id           = module.network.subnet_app.id
+  tags                = local.tags
 
   load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
-
-  network = {
-    name  = module.network.vnet.name
-    cidrs = ["10.0.0.0/23"]
-  }
-
-  tags = {
-    owner   = "yusuke.yoda"
-    created = "2023.05.10"
-  }
 }
 
 module "frontdoor" {
@@ -69,24 +98,20 @@ module "frontdoor" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "houjingpt-${local.env}-jpeast"
+  waf_policy_name     = "wafrgHoujingptStage"
 
   app = {
-    host                   = module.app.app.ingress.0.fqdn
-    private_link_target_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/privateLinkServices/pl-hojingpt-stage-001"
+    host                   = module.app.container.ingress.0.fqdn
+    private_link_target_id = module.app.private_link_service.id
   }
 
   domain = {
     name        = local.domain_name
     host_name   = local.host_name
-    dns_zone_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/dnsZones/staging.hojingpt.com"  #TODO
+    dns_zone_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/dnsZones/staging.hojingpt.com" #TODO
   }
 
-  waf_policy_name = "wafrgHoujingptStage"
-
-  tags = {
-    owner   = "yusuke.yoda"
-    created = "2023.05.10"
-  }
+  tags = local.tags
 }
 
 module "mysql" {
@@ -97,13 +122,13 @@ module "mysql" {
   alias_name          = "houjingpt-${local.env}"
   sku_name            = "B_Standard_B1s"
   dns_vnet_link_name  = "mkctbf32nyz7e" #TODO: random
+  key_vault_id        = module.security.key_vault.id
   db_version          = "8.0.21"
   db_name             = "hojingpt"
 
   network = {
-    name  = module.network.vnet.name
-    id    = module.network.vnet.id
-    cidrs = ["10.0.2.0/24"]
+    vnet_id   = module.network.vnet.id
+    subnet_id = module.network.subnet_mysql.id
   }
 
   storage = {
@@ -120,12 +145,8 @@ module "redis" {
   alias_name           = "houjingpt-${local.env}"
   storage_account_name = "sthojingptredis${local.env}"
   user_assigned_ids    = [module.security.user_assigned_identity.id]
-  subnet_id            = module.app.subnet.id
+  subnet_id            = module.network.subnet_app.id
+  tags                 = local.tags
 
-  private_service_connection_suffix = "130d0c9d-f74f-4f81-b0f6-c76ec0d36016"
-
-  tags = {
-    owner   = "yusuke.yoda"
-    created = "2023.05.10"
-  }
+  private_service_connection_suffix = "130d0c9d-f74f-4f81-b0f6-c76ec0d36016" #TODO: random_uuid
 }

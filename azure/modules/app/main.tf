@@ -23,15 +23,12 @@ variable "user_assigned_ids" {
   type = list(string)
 }
 
-variable "network" {
-  type = object({
-    name  = string
-    cidrs = list(string)
-  })
-}
-
 variable "load_balancer_frontend_ip_configuration_ids" {
   type = list(string)
+}
+
+variable "subnet_id" {
+  type = string
 }
 
 resource "azurerm_container_registry" "app" {
@@ -66,14 +63,6 @@ resource "azurerm_container_registry" "app" {
   tags = var.tags
 }
 
-resource "azurerm_subnet" "app" {
-  name                 = "snet-${var.app_name}"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = var.network.name
-  address_prefixes     = var.network.cidrs
-  service_endpoints    = ["Microsoft.KeyVault"]
-}
-
 data "azurerm_container_app_environment" "app" {
   name                = "cae-${var.app_name}"
   resource_group_name = var.resource_group_name
@@ -95,7 +84,7 @@ resource "azurerm_private_link_service" "main" {
   nat_ip_configuration {
     name      = "snet-${var.app_name}-1"
     primary   = true
-    subnet_id = azurerm_subnet.app.id
+    subnet_id = var.subnet_id
   }
 
   tags = var.tags
@@ -109,10 +98,10 @@ output "env" {
   value = data.azurerm_container_app_environment.app
 }
 
-output "app" {
+output "container" {
   value = data.azurerm_container_app.app
 }
 
-output "subnet" {
-  value = azurerm_subnet.app
+output "private_link_service" {
+  value = one(azurerm_private_link_service.main)
 }
