@@ -51,13 +51,13 @@ Unfortunately, CI/CD has not yet been set up. So, you need to use terraform loca
 
 The following resources are manually configured.
 - DNS
-- Vault
+- Vault Key
+- Container Apps
 
 The following resources are partially configured manually.
 
 ### Azure Strage
 - sthojingptterraform{dev|stage|prod}: Used for tfstate storage.
-
 
 # NOTE
 - [Azure Resource Naming Conventions](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)
@@ -66,3 +66,22 @@ The following resources are partially configured manually.
    ```bash
    az account list-locations -o table
    ```
+
+# How to deployo application
+
+```bash
+export ENV=stage
+export NAME=ca-hojingpt-${ENV}-001
+export IMAGE="crhojingptstage.azurecr.io/hojin-gpt:v5"
+
+az containerapp up \
+      --name ${NAME} \
+      --resource-group rg-hojingpt-${ENV} \
+      --location japaneast \
+      --environment cae-hojingpt-${ENV}-001 \
+      --image ${IMAGE} \
+      --target-port 80 \
+      --ingress external \
+      --query properties.configuration.ingress.fqdn
+      --env-vars 'PORT=80 staging=1'
+```

@@ -31,7 +31,11 @@ variable "subnet_id" {
   type = string
 }
 
-resource "azurerm_container_registry" "app" {
+variable "log_analytics_workspace_id" {
+  type = string
+}
+
+resource "azurerm_container_registry" "main" {
   name                = var.registory_name
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -63,12 +67,23 @@ resource "azurerm_container_registry" "app" {
   tags = var.tags
 }
 
-data "azurerm_container_app_environment" "app" {
-  name                = "cae-${var.app_name}"
-  resource_group_name = var.resource_group_name
+resource "azurerm_container_app_environment" "main" {
+  name                           = "cae-${var.app_name}"
+  location                       = var.location
+  resource_group_name            = var.resource_group_name
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  infrastructure_subnet_id       = var.subnet_id
+  internal_load_balancer_enabled = true
+  tags                           = var.tags
+
+  # HACK: Once created, it cannot be changed by terraform...
+  #   - https://stackoverflow.com/questions/73811960/how-can-i-modify-container-app-environment-customerid
+  lifecycle {
+    ignore_changes = [log_analytics_workspace_id]
+  }
 }
 
-data "azurerm_container_app" "app" {
+data "azurerm_container_app" "main" {
   name                = "ca-${var.app_name}"
   resource_group_name = var.resource_group_name
 }
@@ -91,15 +106,15 @@ resource "azurerm_private_link_service" "main" {
 }
 
 output "registry" {
-  value = azurerm_container_registry.app
+  value = azurerm_container_registry.main
 }
 
 output "env" {
-  value = data.azurerm_container_app_environment.app
+  value = azurerm_container_app_environment.main
 }
 
 output "container" {
-  value = data.azurerm_container_app.app
+  value = data.azurerm_container_app.main
 }
 
 output "private_link_service" {

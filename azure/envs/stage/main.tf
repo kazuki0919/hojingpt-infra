@@ -59,7 +59,7 @@ module "network" {
     cidrs = ["10.0.2.0/24"]
   }
 
-  tags                = local.tags
+  tags = local.tags
 }
 
 module "security" {
@@ -80,6 +80,14 @@ module "security" {
   tags = local.tags
 }
 
+module "logging" {
+  source              = "../../modules/logging"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  retention_in_days   = 30
+}
+
 module "app" {
   source              = "../../modules/app"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -91,6 +99,7 @@ module "app" {
   tags                = local.tags
 
   load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
+  log_analytics_workspace_id                  = module.logging.log_analytics_workspace.id
 }
 
 module "frontdoor" {

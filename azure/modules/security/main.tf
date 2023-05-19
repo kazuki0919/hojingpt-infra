@@ -100,21 +100,22 @@ resource "azurerm_key_vault_access_policy" "users" {
   ]
 }
 
-resource "azurerm_key_vault_key" "mysql" {
-  count        = var.mysql_key_enabled ? 1 : 0
-  name         = "key-mysql-${var.alias_name}"
-  key_vault_id = azurerm_key_vault.main.id
-  key_type     = "RSA"
-  key_size     = 2048
+# ファイアウォールによるアクセス制限により、VPN接続が必要なので管理対象外にする
+# resource "azurerm_key_vault_key" "mysql" {
+#   count        = var.mysql_key_enabled ? 1 : 0
+#   name         = "key-mysql-${var.alias_name}"
+#   key_vault_id = azurerm_key_vault.main.id
+#   key_type     = "RSA"
+#   key_size     = 2048
 
-  key_opts = [
-    "sign", "verify", "wrapKey", "unwrapKey", "encrypt", "decrypt",
-  ]
+#   key_opts = [
+#     "sign", "verify", "wrapKey", "unwrapKey", "encrypt", "decrypt",
+#   ]
 
-  lifecycle {
-    ignore_changes = [not_before_date]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [not_before_date]
+#   }
+# }
 
 output "user_assigned_identity" {
   value = azurerm_user_assigned_identity.main
