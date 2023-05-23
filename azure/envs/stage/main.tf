@@ -18,6 +18,7 @@ locals {
 
   allow_ips = [
     "126.208.101.129/32", # takahito.yamatoya's home IP. To be removed at a later.
+    "222.230.117.190/32", # yusuke.yoda's home IP. To be removed at a later.
     "150.249.202.236/32", # givery's office 8F
     "150.249.192.10/32",  # givery's office 7F
   ]
@@ -59,6 +60,11 @@ module "network" {
     cidrs = ["10.0.2.0/24"]
   }
 
+  vm = {
+    name  = "snet-hojingpt-${local.env}-003"
+    cidrs = ["10.0.4.0/23"]
+  }
+
   tags = local.tags
 }
 
@@ -86,6 +92,16 @@ module "logging" {
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
   retention_in_days   = 30
+}
+
+module "bastion" {
+  source = "../../modules/bastion"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  subnet_id           = module.network.subnet_vm.id
+  ssh_key             = "ssh-hojingpt-${local.env}-001"
+  allow_ips           = local.allow_ips
 }
 
 module "app" {

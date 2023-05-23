@@ -30,6 +30,22 @@ variable "mysql" {
   default = null
 }
 
+variable "bastion" {
+  type = object({
+    name  = string
+    cidrs = list(string)
+  })
+  default = null
+}
+
+variable "vm" {
+  type = object({
+    name  = string
+    cidrs = list(string)
+  })
+  default = null
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -75,6 +91,22 @@ resource "azurerm_subnet" "mysql" {
   }
 }
 
+resource "azurerm_subnet" "bastion" {
+  count                = var.bastion != null ? 1 : 0
+  name                 = var.bastion.name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = var.bastion.cidrs
+}
+
+resource "azurerm_subnet" "vm" {
+  count                = var.vm != null ? 1 : 0
+  name                 = var.vm.name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = var.vm.cidrs
+}
+
 output "vnet" {
   value = azurerm_virtual_network.main
 }
@@ -85,4 +117,12 @@ output "subnet_app" {
 
 output "subnet_mysql" {
   value = var.mysql != null ? one(azurerm_subnet.mysql) : null
+}
+
+output "subnet_bastion" {
+  value = var.bastion != null ? one(azurerm_subnet.bastion) : null
+}
+
+output "subnet_vm" {
+  value = var.vm != null ? one(azurerm_subnet.vm) : null
 }

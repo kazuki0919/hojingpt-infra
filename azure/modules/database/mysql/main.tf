@@ -103,11 +103,10 @@ resource "azurerm_mysql_flexible_server" "main" {
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main]
 }
 
-#TODO
-# resource "azurerm_mysql_flexible_database" "main" {
-#   charset             = "utf8mb4"
-#   collation           = "utf8mb4_bin"
-#   name                = var.db_name
-#   resource_group_name = var.resource_group_name
-#   server_name         = azurerm_mysql_flexible_server.main.name
-# }
+resource "azurerm_mysql_flexible_database" "main" {
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_bin"
+  name                = var.db_name
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.main.name
+}

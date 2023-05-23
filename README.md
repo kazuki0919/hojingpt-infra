@@ -52,6 +52,7 @@ Unfortunately, CI/CD has not yet been set up. So, you need to use terraform loca
 The following resources are manually configured.
 - DNS
 - Vault Key
+- SSH Key
 - Container Apps
 
 The following resources are partially configured manually.
@@ -67,7 +68,38 @@ The following resources are partially configured manually.
    az account list-locations -o table
    ```
 
-# How to deployo application
+# Bastion
+
+### SSH Key
+
+Azure SSH keys are stored in the Key Vault.
+Do not use this key for anything other than recovery, and normally register each SSH key with the server to connect.
+
+```bash
+export ENV=stage|prod
+
+# Download
+az keyvault secret download --vault-name kv-hojingpt-${ENV} --name ssh-hojingpt-${ENV}-001 --file "~/.ssh/ssh-hojingpt-${ENV}-001.pem"
+
+# Upload: Note that pem files containing newline codes cannot be stored properly without cli.
+az keyvault secret set --vault-name kv-hojingpt-${ENV} --name ssh-hojingpt-${ENV}-001 --file "~/.ssh/ssh-hojingpt-${ENV}-001.pem"
+```
+
+### How to connect
+
+In the future, we plan to block access from IPs other than the Givery office IP. In this case, an office VPN will be required.
+
+```bash
+# SSH
+ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@20.78.50.1
+ssh -i ~/.ssh/ssh-hojingpt-prod-001.pem azureuser@xx.xxx.xxx.xxx
+
+# Azure CLI
+az ssh vm --ip 20.78.50.1 #staging
+az ssh vm --ip xx.xxx.xxx.x #prod
+```
+
+# How to deploy application
 
 ```bash
 export ENV=stage
