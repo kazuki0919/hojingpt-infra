@@ -47,7 +47,6 @@ variable "zone" {
   default = "1"
 }
 
-
 variable "storage" {
   type = object({
     iops    = number

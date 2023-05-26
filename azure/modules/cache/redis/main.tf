@@ -21,12 +21,12 @@ variable "capacity" {
 
 variable "family" {
   type    = string
-  default = "C"
+  default = "P"
 }
 
 variable "sku_name" {
   type    = string
-  default = "Standard" # Basic, Standard, Premium
+  default = "Premium" # Basic, Standard, Premium
 }
 
 variable "redis_version" {
@@ -96,15 +96,17 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = var.capacity
   family                        = var.family
   sku_name                      = var.sku_name
-  enable_non_ssl_port           = true
+  enable_non_ssl_port           = false
   minimum_tls_version           = "1.2"
-  public_network_access_enabled = false
+  public_network_access_enabled = true
   redis_version                 = var.redis_version
 
   identity {
     identity_ids = var.user_assigned_ids
     type         = "UserAssigned"
   }
+
+  subnet_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/virtualNetworks/vnet-hojingpt-stage-001/subnets/snet-hojingpt-stage-001"
 
   # redis_configuration {
   #   rdb_backup_enabled            = true

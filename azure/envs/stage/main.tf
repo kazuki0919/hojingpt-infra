@@ -60,9 +60,9 @@ module "network" {
     cidrs = ["10.0.2.0/24"]
   }
 
-  vm = {
+  bastion = {
     name  = "snet-hojingpt-${local.env}-003"
-    cidrs = ["10.0.4.0/23"]
+    cidrs = ["10.0.3.0/24"]
   }
 
   tags = local.tags
@@ -99,9 +99,10 @@ module "bastion" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  subnet_id           = module.network.subnet_vm.id
+  subnet_id           = module.network.subnet_bastion.id
   ssh_key             = "ssh-hojingpt-${local.env}-001"
   allow_ips           = local.allow_ips
+  tags                = local.tags
 }
 
 module "app" {
@@ -174,4 +175,12 @@ module "redis" {
   tags                 = local.tags
 
   private_service_connection_suffix = "130d0c9d-f74f-4f81-b0f6-c76ec0d36016" #TODO: random_uuid
+}
+
+module "monitoring" {
+  source              = "../../modules/monitoring"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = "eastasia"
+  name                = "hojingpt-${local.env}"
+  tags                = local.tags
 }

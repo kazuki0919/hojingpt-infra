@@ -23,6 +23,11 @@ variable "allow_ips" {
   default = []
 }
 
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
+
 resource "azurerm_public_ip" "main" {
   name                = "pip-${var.name}-bastion-001"
   location            = var.location
@@ -48,6 +53,8 @@ resource "azurerm_network_security_group" "main" {
     source_address_prefixes    = var.allow_ips
     destination_address_prefix = "*"
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_network_interface" "main" {
@@ -103,6 +110,8 @@ resource "azurerm_linux_virtual_machine" "main" {
   identity {
     type = "SystemAssigned"
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_virtual_machine_extension" "sshlogin" {
