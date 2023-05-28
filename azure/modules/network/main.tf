@@ -16,34 +16,21 @@ variable "address_space" {
 
 variable "app" {
   type = object({
-    name  = string
     cidrs = list(string)
   })
-  default = null
 }
 
 variable "mysql" {
   type = object({
-    name  = string
     cidrs = list(string)
   })
-  default = null
 }
 
 variable "bastion" {
   type = object({
-    name  = string
-    cidrs = list(string)
+    cidrs     = list(string)
+    allow_ips = list(string)
   })
-  default = null
-}
-
-variable "vm" {
-  type = object({
-    name  = string
-    cidrs = list(string)
-  })
-  default = null
 }
 
 variable "tags" {
@@ -52,7 +39,7 @@ variable "tags" {
 }
 
 resource "azurerm_virtual_network" "main" {
-  name                = var.name
+  name                = "vnet-${var.name}-001"
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.address_space
@@ -64,7 +51,7 @@ resource "azurerm_virtual_network" "main" {
 #
 resource "azurerm_subnet" "app" {
   count                = var.app != null ? 1 : 0
-  name                 = var.app.name
+  name                 = "snet-${var.name}-001"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.app.cidrs
@@ -77,7 +64,7 @@ resource "azurerm_subnet" "app" {
 
 resource "azurerm_network_security_group" "app" {
   count               = var.app != null ? 1 : 0
-  name                = "nsg-hojingpt-stage-http-redis-001"
+  name                = "nsg-${var.name}-http-redis-001"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -90,10 +77,10 @@ resource "azurerm_network_security_group" "app" {
     priority                   = 100
     protocol                   = "*"
 
-    source_address_prefixes = [
-      "10.0.0.0/23",
-      "10.0.3.0/24",
-    ]
+    source_address_prefixes = concat(
+      var.app.cidrs,
+      var.bastion.cidrs,
+    )
 
     source_port_range = "*"
   }
@@ -118,7 +105,7 @@ resource "azurerm_network_security_group" "app" {
 #
 resource "azurerm_subnet" "mysql" {
   count                = var.mysql != null ? 1 : 0
-  name                 = var.mysql.name
+  name                 = "snet-${var.name}-002"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.mysql.cidrs
@@ -141,7 +128,7 @@ resource "azurerm_subnet" "mysql" {
 
 resource "azurerm_network_security_group" "mysql" {
   count               = var.mysql != null ? 1 : 0
-  name                = "nsg-hojingpt-stage-mysql-001"
+  name                = "nsg-${var.name}-mysql-001"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -154,10 +141,10 @@ resource "azurerm_network_security_group" "mysql" {
     priority                   = 100
     protocol                   = "Tcp"
 
-    source_address_prefixes = [
-      "10.0.0.0/23",
-      "10.0.3.0/24",
-    ]
+    source_address_prefixes = concat(
+      var.app.cidrs,
+      var.bastion.cidrs
+    )
 
     source_port_range = "*"
   }
@@ -182,14 +169,14 @@ resource "azurerm_network_security_group" "mysql" {
 #
 resource "azurerm_subnet" "bastion" {
   count                = var.bastion != null ? 1 : 0
-  name                 = var.bastion.name
+  name                 = "snet-${var.name}-003"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.bastion.cidrs
 }
 
 resource "azurerm_network_security_group" "bastion" {
-  name                = "nsg-hojingpt-stage-bastion-001"
+  name                = "nsg-${var.name}-bastion-001"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -201,15 +188,8 @@ resource "azurerm_network_security_group" "bastion" {
     name                       = "SSH"
     priority                   = 1000
     protocol                   = "Tcp"
-
-    source_address_prefixes = [
-      "126.208.101.129/32",
-      "150.249.192.10/32",
-      "150.249.202.236/32",
-      "222.230.117.190/32",
-    ]
-
-    source_port_range = "*"
+    source_address_prefixes    = var.bastion.allow_ips
+    source_port_range          = "*"
   }
 
   tags = var.tags

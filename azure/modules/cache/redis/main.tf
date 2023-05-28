@@ -106,7 +106,7 @@ resource "azurerm_redis_cache" "main" {
     type         = "UserAssigned"
   }
 
-  subnet_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/virtualNetworks/vnet-hojingpt-stage-001/subnets/snet-hojingpt-stage-001"
+  subnet_id = var.subnet_id
 
   # redis_configuration {
   #   rdb_backup_enabled            = true

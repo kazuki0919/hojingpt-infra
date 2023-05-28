@@ -47,22 +47,20 @@ module "network" {
   source              = "../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "vnet-hojingpt-${local.env}-001"
+  name                = "hojingpt-${local.env}"
   address_space       = ["10.0.0.0/16"]
 
   app = {
-    name  = "snet-hojingpt-${local.env}-001"
     cidrs = ["10.0.0.0/23"]
   }
 
   mysql = {
-    name  = "snet-hojingpt-${local.env}-002"
     cidrs = ["10.0.2.0/24"]
   }
 
   bastion = {
-    name  = "snet-hojingpt-${local.env}-003"
-    cidrs = ["10.0.3.0/24"]
+    cidrs     = ["10.0.3.0/24"]
+    allow_ips = local.allow_ips
   }
 
   tags = local.tags
