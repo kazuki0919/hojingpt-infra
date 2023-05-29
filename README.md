@@ -115,7 +115,7 @@ az network bastion tunnel --name bastion-hojingpt-stage-001 \
   --resource-port 22 --port 5022
 
 # then connect to localhost:5022
-ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@20.78.50.1
+ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@127.0.0.1
 ```
 
 # Deployment
@@ -128,6 +128,7 @@ az acr build --registry crhojingptstage --platform linux/amd64 --image hojingpt/
 
 # pull
 az acr login --name crhojingptstage
+docker pull crhojingptstage.azurecr.io/hojingpt/app:v1
 ```
 
 ### Deploy
@@ -135,7 +136,7 @@ az acr login --name crhojingptstage
 ```bash
 export ENV=stage
 export NAME=ca-hojingpt-${ENV}-001
-export IMAGE="crhojingptstage.azurecr.io/hojingpt/app:v1.1"
+export IMAGE="crhojingptstage.azurecr.io/hojingpt/app:v1"
 export MODE=staging
 
 az containerapp up \
