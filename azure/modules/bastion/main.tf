@@ -10,7 +10,11 @@ variable "name" {
   type = string
 }
 
-variable "subnet_id" {
+variable "bastion_subnet_id" {
+  type = string
+}
+
+variable "vm_subnet_id" {
   type = string
 }
 
@@ -18,16 +22,19 @@ variable "ssh_key" {
   type = string
 }
 
-variable "allow_ips" {
-  type    = list(string)
-  default = []
-}
-
 variable "tags" {
   type    = map(string)
   default = {}
 }
 
+data "azurerm_ssh_public_key" "main" {
+  name                = var.ssh_key
+  resource_group_name = var.resource_group_name
+}
+
+#
+# Azure Bastion Service
+#
 resource "azurerm_public_ip" "main" {
   name                = "pip-${var.name}-bastion-001"
   location            = var.location
@@ -36,27 +43,23 @@ resource "azurerm_public_ip" "main" {
   sku                 = "Standard"
 }
 
-resource "azurerm_network_security_group" "main" {
-  name                = "nsg-${var.name}-bastion-001"
+resource "azurerm_bastion_host" "main" {
+  name                = "bastion-${var.name}-001"
   location            = var.location
   resource_group_name = var.resource_group_name
+  sku                 = "Standard"
+  tunneling_enabled   = true
 
-  security_rule {
-    name                       = "SSH"
-    priority                   = 1000
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = length(var.allow_ips) > 0 ? null : "*"
-    source_address_prefixes    = var.allow_ips
-    destination_address_prefix = "*"
+  ip_configuration {
+    name                 = "default"
+    subnet_id            = var.bastion_subnet_id
+    public_ip_address_id = azurerm_public_ip.main.id
   }
-
-  tags = var.tags
 }
 
+#
+# Backend Virtual Machine for Bastion
+#
 resource "azurerm_network_interface" "main" {
   name                = "nic-${var.name}-bastion-001"
   location            = var.location
@@ -64,20 +67,9 @@ resource "azurerm_network_interface" "main" {
 
   ip_configuration {
     name                          = "default"
-    subnet_id                     = var.subnet_id
+    subnet_id                     = var.vm_subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.main.id
   }
-}
-
-resource "azurerm_subnet_network_security_group_association" "main" {
-  subnet_id                 = var.subnet_id
-  network_security_group_id = azurerm_network_security_group.main.id
-}
-
-data "azurerm_ssh_public_key" "main" {
-  name                = var.ssh_key
-  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_linux_virtual_machine" "main" {

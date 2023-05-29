@@ -10,10 +10,6 @@ variable "name" {
   type = string
 }
 
-variable "alias_name" {
-  type = string
-}
-
 variable "capacity" {
   type    = number
   default = 1
@@ -21,12 +17,12 @@ variable "capacity" {
 
 variable "family" {
   type    = string
-  default = "P"
+  default = "C" # C = Basic, Standard, P = Premium
 }
 
 variable "sku_name" {
   type    = string
-  default = "Premium" # Basic, Standard, Premium
+  default = "Basic" # Basic, Standard, Premium
 }
 
 variable "redis_version" {
@@ -51,11 +47,6 @@ variable "tags" {
   default = {}
 }
 
-variable "private_service_connection_suffix" {
-  type    = string
-  default = ""
-}
-
 # resource "azurerm_storage_account" "rdb_storage" {
 #   name                              = var.storage_account_name
 #   resource_group_name               = var.resource_group_name
@@ -71,7 +62,7 @@ resource "azurerm_private_dns_zone" "main" {
 }
 
 resource "azurerm_private_endpoint" "main" {
-  name                = "pep-${var.alias_name}"
+  name                = "pep-${var.name}-redis-001"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.subnet_id
@@ -82,7 +73,7 @@ resource "azurerm_private_endpoint" "main" {
   }
 
   private_service_connection {
-    name                           = "pep-${var.alias_name}_${var.private_service_connection_suffix}"
+    name                           = "default"
     private_connection_resource_id = azurerm_redis_cache.main.id
     is_manual_connection           = false
     subresource_names              = ["redisCache"]
@@ -90,7 +81,7 @@ resource "azurerm_private_endpoint" "main" {
 }
 
 resource "azurerm_redis_cache" "main" {
-  name                          = "redis-${var.alias_name}"
+  name                          = "redis-${var.name}-001"
   location                      = var.location
   resource_group_name           = var.resource_group_name
   capacity                      = var.capacity
@@ -98,7 +89,7 @@ resource "azurerm_redis_cache" "main" {
   sku_name                      = var.sku_name
   enable_non_ssl_port           = false
   minimum_tls_version           = "1.2"
-  public_network_access_enabled = true
+  public_network_access_enabled = false
   redis_version                 = var.redis_version
 
   identity {
@@ -106,7 +97,7 @@ resource "azurerm_redis_cache" "main" {
     type         = "UserAssigned"
   }
 
-  subnet_id = var.subnet_id
+  # subnet_id = var.subnet_id
 
   # redis_configuration {
   #   rdb_backup_enabled            = true

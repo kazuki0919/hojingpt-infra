@@ -93,13 +93,13 @@ module "logging" {
 }
 
 module "bastion" {
-  source = "../../modules/bastion"
+  source              = "../../modules/bastion"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  subnet_id           = module.network.subnet_bastion.id
   ssh_key             = "ssh-hojingpt-${local.env}-001"
-  allow_ips           = local.allow_ips
+  bastion_subnet_id   = module.network.subnet_bastion.id
+  vm_subnet_id        = module.network.subnet_app.id
   tags                = local.tags
 }
 
@@ -143,12 +143,11 @@ module "mysql" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  alias_name          = "houjingpt-${local.env}"
   sku_name            = "B_Standard_B1s"
-  dns_vnet_link_name  = "mkctbf32nyz7e" #TODO: random
   key_vault_id        = module.security.key_vault.id
   db_version          = "8.0.21"
   db_name             = "hojingpt"
+  administrator_login = "hojingpt"
 
   network = {
     vnet_id   = module.network.vnet.id
@@ -166,13 +165,10 @@ module "redis" {
   resource_group_name  = data.azurerm_resource_group.main.name
   location             = data.azurerm_resource_group.main.location
   name                 = "hojingpt-${local.env}"
-  alias_name           = "houjingpt-${local.env}"
   storage_account_name = "sthojingptredis${local.env}"
   user_assigned_ids    = [module.security.user_assigned_identity.id]
   subnet_id            = module.network.subnet_app.id
   tags                 = local.tags
-
-  private_service_connection_suffix = "130d0c9d-f74f-4f81-b0f6-c76ec0d36016" #TODO: random_uuid
 }
 
 module "monitoring" {

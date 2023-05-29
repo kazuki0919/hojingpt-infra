@@ -10,19 +10,11 @@ variable "name" {
   type = string
 }
 
-variable "alias_name" {
-  type = string
-}
-
 variable "network" {
   type = object({
     vnet_id   = string
     subnet_id = string
   })
-}
-
-variable "dns_vnet_link_name" {
-  type = string
 }
 
 variable "sku_name" {
@@ -58,13 +50,22 @@ variable "key_vault_id" {
   type = string
 }
 
+variable "administrator_login" {
+  type = string
+}
+
+data "azurerm_key_vault_secret" "password" {
+  name         = "mysql-${var.name}-password-001"
+  key_vault_id = var.key_vault_id
+}
+
 resource "azurerm_private_dns_zone" "main" {
-  name                = "mysql-${var.alias_name}.private.mysql.database.azure.com"
+  name                = "mysql-${var.name}.private.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
-  name                  = var.dns_vnet_link_name
+  name                  = "mysql-${var.name}-001"
   private_dns_zone_name = azurerm_private_dns_zone.main.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = var.network.vnet_id
@@ -73,7 +74,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
 resource "azurerm_mysql_flexible_server" "main" {
   resource_group_name          = var.resource_group_name
   location                     = var.location
-  name                         = "mysql-${var.alias_name}"
+  name                         = "mysql-${var.name}-001"
+  administrator_login          = var.administrator_login
+  administrator_password       = data.azurerm_key_vault_secret.password.value
   backup_retention_days        = var.backup_retention_days
   delegated_subnet_id          = var.network.subnet_id
   geo_redundant_backup_enabled = false
@@ -100,6 +103,16 @@ resource "azurerm_mysql_flexible_server" "main" {
   }
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main]
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "main" {
+  for_each = {
+    # interactive_timeout = "600"
+  }
+  name                = each.key
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.main.name
+  value               = each.value
 }
 
 resource "azurerm_mysql_flexible_database" "main" {

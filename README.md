@@ -90,30 +90,64 @@ az keyvault secret set --vault-name kv-hojingpt-${ENV} --name ssh-hojingpt-${ENV
 In the future, we plan to block access from IPs other than the Givery office IP. In this case, an office VPN will be required.
 
 ```bash
-# SSH
-ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@20.78.50.1
-ssh -i ~/.ssh/ssh-hojingpt-prod-001.pem azureuser@xx.xxx.xxx.xxx
+az login
+az account list
+az account set --subscription "2b7c69c8-29da-4322-a5fa-baae7454f6ef"
 
-# Azure CLI
-az ssh vm --ip 20.78.50.1 #staging
-az ssh vm --ip xx.xxx.xxx.x #prod
+# Azure Bastion (SSH Key)
+az network bastion ssh --name bastion-hojingpt-stage-001 \
+  --resource-group rg-hojingpt-stage \
+  --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
+  --auth-type ssh-key \
+  --username azureuser \
+  --ssh-key /Users/yyoda/.ssh/ssh-hojingpt-stage-001.pem
+
+# Azure bastion (Azure Active Directory)
+az network bastion ssh --name bastion-hojingpt-stage-001 \
+  --resource-group rg-hojingpt-stage \
+  --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
+  --auth-type AAD
+
+# SSH
+# 1. tunnel
+az network bastion tunnel --name bastion-hojingpt-stage-001 \
+  --resource-group rg-hojingpt-stage --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
+  --resource-port 22 --port 5022
+
+# then connect to localhost:5022
+ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@20.78.50.1
 ```
 
-# How to deploy application
+# Deployment
+
+### Build
+
+```bash
+# build and push
+az acr build --registry crhojingptstage --platform linux/amd64 --image hojingpt/app:v1 .
+
+# pull
+az acr login --name crhojingptstage
+```
+
+### Deploy
 
 ```bash
 export ENV=stage
 export NAME=ca-hojingpt-${ENV}-001
-export IMAGE="crhojingptstage.azurecr.io/hojin-gpt:v5"
+export IMAGE="crhojingptstage.azurecr.io/hojingpt/app:v1.1"
+export MODE=staging
 
 az containerapp up \
-      --name ${NAME} \
-      --resource-group rg-hojingpt-${ENV} \
-      --location japaneast \
-      --environment cae-hojingpt-${ENV}-001 \
-      --image ${IMAGE} \
-      --target-port 80 \
-      --ingress external \
-      --query properties.configuration.ingress.fqdn
-      --env-vars 'PORT=80 staging=1'
+  --name "${NAME}" \
+  --resource-group rg-hojingpt-${ENV} \
+  --location japaneast \
+  --environment cae-hojingpt-${ENV}-001 \
+  --image "${IMAGE}" \
+  --target-port 80 \
+  --ingress external \
+  --query properties.configuration.ingress.fqdn \
+  --env-vars "PORT=80" "${MODE}=1"
+
+az containerapp logs show -n ca-hojingpt-${ENV}-001 -g rg-hojingpt-${ENV}
 ```
