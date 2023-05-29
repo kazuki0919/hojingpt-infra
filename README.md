@@ -21,6 +21,14 @@
     az account set --subscription "od-001-hojingpt"
     ```
 
+1. Run
+
+  ```bash
+  cd azure/envs/dev
+  tfenv install && terraform init
+  terraform plan
+  ```
+
 # How to start new environment creation
 
 - Create a resource group and set up a storage location for tfstate.
@@ -114,7 +122,7 @@ az network bastion tunnel --name bastion-hojingpt-stage-001 \
   --resource-group rg-hojingpt-stage --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
   --resource-port 22 --port 5022
 
-# then connect to localhost:5022
+# 2. then, connect to localhost:5022
 ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@127.0.0.1
 ```
 
