@@ -1,59 +1,3 @@
-variable "resource_group_name" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "name" {
-  type = string
-}
-
-variable "network" {
-  type = object({
-    vnet_id   = string
-    subnet_id = string
-  })
-}
-
-variable "sku_name" {
-  type = string
-}
-
-variable "db_version" {
-  type = string
-}
-
-variable "db_name" {
-  type = string
-}
-
-variable "backup_retention_days" {
-  type    = number
-  default = 7
-}
-
-variable "zone" {
-  type    = string
-  default = "1"
-}
-
-variable "storage" {
-  type = object({
-    iops    = number
-    size_gb = number
-  })
-}
-
-variable "key_vault_id" {
-  type = string
-}
-
-variable "administrator_login" {
-  type = string
-}
-
 data "azurerm_key_vault_secret" "password" {
   name         = "mysql-${var.name}-password-001"
   key_vault_id = var.key_vault_id
@@ -62,6 +6,7 @@ data "azurerm_key_vault_secret" "password" {
 resource "azurerm_private_dns_zone" "main" {
   name                = "mysql-${var.name}.private.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
@@ -69,6 +14,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   private_dns_zone_name = azurerm_private_dns_zone.main.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = var.network.vnet_id
+  tags                  = var.tags
 }
 
 resource "azurerm_mysql_flexible_server" "main" {
@@ -101,6 +47,8 @@ resource "azurerm_mysql_flexible_server" "main" {
     iops    = var.storage.iops
     size_gb = var.storage.size_gb
   }
+
+  tags = var.tags
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main]
 }

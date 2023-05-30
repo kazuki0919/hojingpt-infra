@@ -1,40 +1,3 @@
-variable "app_name" {
-  type = string
-}
-
-variable "registory_name" {
-  type = string
-}
-
-variable "resource_group_name" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
-
-variable "user_assigned_ids" {
-  type = list(string)
-}
-
-variable "load_balancer_frontend_ip_configuration_ids" {
-  type = list(string)
-}
-
-variable "subnet_id" {
-  type = string
-}
-
-variable "log_analytics_workspace_id" {
-  type = string
-}
-
 resource "azurerm_container_registry" "main" {
   name                = var.registory_name
   resource_group_name = var.resource_group_name
@@ -103,20 +66,4 @@ resource "azurerm_private_link_service" "main" {
   }
 
   tags = var.tags
-}
-
-output "registry" {
-  value = azurerm_container_registry.main
-}
-
-output "env" {
-  value = azurerm_container_app_environment.main
-}
-
-output "container" {
-  value = data.azurerm_container_app.main
-}
-
-output "private_link_service" {
-  value = one(azurerm_private_link_service.main)
 }

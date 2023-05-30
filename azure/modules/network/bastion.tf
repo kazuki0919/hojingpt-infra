@@ -2,7 +2,7 @@ resource "azurerm_subnet" "bastion" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = var.bastion.cidrs
+  address_prefixes     = var.subnet_bastion.cidrs
 }
 
 # see: https://learn.microsoft.com/ja-jp/azure/bastion/bastion-nsg#apply
@@ -108,6 +108,8 @@ resource "azurerm_network_security_group" "bastion" {
     destination_address_prefix = "Internet"
     access                     = "Allow"
   }
+
+  tags = var.tags
 }
 
 resource "azurerm_subnet_network_security_group_association" "bastion" {

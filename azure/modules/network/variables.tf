@@ -14,22 +14,23 @@ variable "address_space" {
   type = list(string)
 }
 
-variable "app" {
+variable "subnet_app" {
   type = object({
+    name  = string
     cidrs = list(string)
   })
 }
 
-variable "mysql" {
+variable "subnet_mysql" {
   type = object({
+    name  = string
     cidrs = list(string)
   })
 }
 
-variable "bastion" {
+variable "subnet_bastion" {
   type = object({
-    cidrs     = list(string)
-    allow_ips = list(string)
+    cidrs = list(string)
   })
 }
 

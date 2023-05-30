@@ -1,8 +1,8 @@
 resource "azurerm_subnet" "mysql" {
-  name                 = "snet-${var.name}-002"
+  name                 = var.subnet_mysql.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = var.mysql.cidrs
+  address_prefixes     = var.subnet_mysql.cidrs
 
   service_endpoints = [
     "Microsoft.KeyVault",
@@ -32,7 +32,7 @@ resource "azurerm_network_security_group" "mysql" {
     name                       = "AllowCidrBlockMySQLInbound"
     destination_port_range     = "3306"
     protocol                   = "Tcp"
-    source_address_prefixes    = var.app.cidrs
+    source_address_prefixes    = var.subnet_app.cidrs
     source_port_range          = "*"
     destination_address_prefix = "*"
     access                     = "Allow"

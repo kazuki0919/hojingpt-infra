@@ -38,11 +38,6 @@ data "azurerm_resource_group" "main" {
   name = "rg-hojingpt-${local.env}"
 }
 
-data "azurerm_lb" "kubernetes_internal" {
-  name                = "kubernetes-internal"
-  resource_group_name = "mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast"
-}
-
 module "network" {
   source              = "../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -50,17 +45,18 @@ module "network" {
   name                = "hojingpt-${local.env}"
   address_space       = ["10.0.0.0/16"]
 
-  app = {
+  subnet_app = {
+    name  = "snet-hojingpt-${local.env}-001"
     cidrs = ["10.0.0.0/23"]
   }
 
-  mysql = {
+  subnet_mysql = {
+    name  = "snet-hojingpt-${local.env}-002"
     cidrs = ["10.0.2.0/24"]
   }
 
-  bastion = {
-    cidrs     = ["10.0.3.0/24"]
-    allow_ips = local.allow_ips
+  subnet_bastion = {
+    cidrs = ["10.0.3.0/24"]
   }
 
   tags = local.tags
@@ -71,8 +67,6 @@ module "security" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  alias_name          = "houjingpt-${local.env}"
-  id_principal_id     = module.security.user_assigned_identity.principal_id
   kv_allow_ips        = local.allow_ips
   kv_users            = local.users
 
@@ -90,6 +84,15 @@ module "logging" {
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
   retention_in_days   = 30
+  tags                = local.tags
+}
+
+module "monitoring" {
+  source              = "../../modules/monitoring"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = "eastasia"
+  name                = "hojingpt-${local.env}"
+  tags                = local.tags
 }
 
 module "bastion" {
@@ -101,6 +104,46 @@ module "bastion" {
   bastion_subnet_id   = module.network.subnet_bastion.id
   vm_subnet_id        = module.network.subnet_app.id
   tags                = local.tags
+}
+
+module "redis" {
+  source               = "../../modules/cache/redis"
+  resource_group_name  = data.azurerm_resource_group.main.name
+  location             = data.azurerm_resource_group.main.location
+  name                 = "hojingpt-${local.env}"
+  storage_account_name = "sthojingptredis${local.env}"
+  user_assigned_ids    = [module.security.user_assigned_identity.id]
+  subnet_id            = module.network.subnet_app.id
+  tags                 = local.tags
+}
+
+module "mysql" {
+  source              = "../../modules/database/mysql"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  sku_name            = "B_Standard_B1s"
+  key_vault_id        = module.security.key_vault.id
+  db_version          = "8.0.21"
+  db_name             = "hojingpt"
+  administrator_login = "hojingpt"
+
+  network = {
+    vnet_id   = module.network.vnet.id
+    subnet_id = module.network.subnet_mysql.id
+  }
+
+  storage = {
+    iops    = 360
+    size_gb = 20
+  }
+
+  tags = local.tags
+}
+
+data "azurerm_lb" "kubernetes_internal" {
+  name                = "kubernetes-internal"
+  resource_group_name = "mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast"
 }
 
 module "app" {
@@ -136,45 +179,4 @@ module "frontdoor" {
   }
 
   tags = local.tags
-}
-
-module "mysql" {
-  source              = "../../modules/database/mysql"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  sku_name            = "B_Standard_B1s"
-  key_vault_id        = module.security.key_vault.id
-  db_version          = "8.0.21"
-  db_name             = "hojingpt"
-  administrator_login = "hojingpt"
-
-  network = {
-    vnet_id   = module.network.vnet.id
-    subnet_id = module.network.subnet_mysql.id
-  }
-
-  storage = {
-    iops    = 360
-    size_gb = 20
-  }
-}
-
-module "redis" {
-  source               = "../../modules/cache/redis"
-  resource_group_name  = data.azurerm_resource_group.main.name
-  location             = data.azurerm_resource_group.main.location
-  name                 = "hojingpt-${local.env}"
-  storage_account_name = "sthojingptredis${local.env}"
-  user_assigned_ids    = [module.security.user_assigned_identity.id]
-  subnet_id            = module.network.subnet_app.id
-  tags                 = local.tags
-}
-
-module "monitoring" {
-  source              = "../../modules/monitoring"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = "eastasia"
-  name                = "hojingpt-${local.env}"
-  tags                = local.tags
 }

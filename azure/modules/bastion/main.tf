@@ -1,32 +1,3 @@
-variable "resource_group_name" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "name" {
-  type = string
-}
-
-variable "bastion_subnet_id" {
-  type = string
-}
-
-variable "vm_subnet_id" {
-  type = string
-}
-
-variable "ssh_key" {
-  type = string
-}
-
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
-
 data "azurerm_ssh_public_key" "main" {
   name                = var.ssh_key
   resource_group_name = var.resource_group_name
