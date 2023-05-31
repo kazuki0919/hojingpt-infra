@@ -131,6 +131,38 @@ az network bastion tunnel --name bastion-hojingpt-stage-001 \
 ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@127.0.0.1
 ```
 
+# MySQL
+
+### How to connect
+
+The password is stored in the Vault Key as [mysql-hojingpt-stage-password-001](https://portal.azure.com/#@givery.onmicrosoft.com/asset/Microsoft_Azure_KeyVault/Secret/https://kv-hojingpt-stage.vault.azure.net/secrets/mysql-hojingpt-stage-password-001) and [mysql-hojingpt-prod-password-001](https://portal.azure.com/#@givery.onmicrosoft.com/asset/Microsoft_Azure_KeyVault/Secret/https://kv-hojingpt-prod.vault.azure.net/secrets/mysql-hojingpt-prod-password-001).
+
+```bash
+# staging
+mysql -h mysql-hojingpt-stage-001.mysql.database.azure.com -u hojingpt -p
+
+# production
+mysql -h mysql-hojingpt-prod-001.mysql.database.azure.com -u hojingpt -p
+```
+
+# Redis
+
+### How to connect
+
+Azure requires authentication. After connecting, execute the AUTH command.
+- [staging's ACCESS_KEY](https://portal.azure.com/#@givery.onmicrosoft.com/resource/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Cache/Redis/redis-hojingpt-stage-001/keys)
+- [production's ACCESS_KEY](https://portal.azure.com/#@givery.onmicrosoft.com/resource/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-prod/providers/Microsoft.Cache/Redis/redis-hojingpt-prod-001/keys)
+
+```bash
+# staging
+redis-cli -h redis-hojingpt-stage-001.redis.cache.windows.net
+AUTH "${ACCESS_KEY}"
+
+# production
+redis-cli -h redis-hojingpt-prod-001.redis.cache.windows.net
+AUTH "${ACCESS_KEY}"
+```
+
 # Deployment
 
 ### Build
