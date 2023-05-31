@@ -10,16 +10,14 @@ variable "name" {
   type = string
 }
 
-variable "app" {
+variable "container_app" {
   type = object({
-    name                   = string
+    name            = string
+    subnet_id       = string
+    lb_frontend_ids = list(string)
     # host                   = string
     # private_link_target_id = string
   })
-}
-
-variable "subnet_id" {
-  type = string
 }
 
 variable "domain" {

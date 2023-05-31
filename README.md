@@ -165,35 +165,50 @@ AUTH "${ACCESS_KEY}"
 
 # Deployment
 
-### Build
+### Build and Deploy for staging
 
 ```bash
+export IMAGE=hojingpt/app:v1.0
+
 # build and push
-az acr build --registry crhojingptstage --platform linux/amd64 --image hojingpt/app:v1 .
+az acr build --registry crhojingptstage --platform linux/amd64 --image ${IMAGE} .
 
-# pull
-az acr login --name crhojingptstage
-docker pull crhojingptstage.azurecr.io/hojingpt/app:v1
-```
-
-### Deploy
-
-```bash
-export ENV=stage
-export NAME=ca-hojingpt-${ENV}-001
-export IMAGE="crhojingptstage.azurecr.io/hojingpt/app:v1"
-export MODE=staging
+# check if needed
+# az acr login --name crhojingptstage
+# docker pull crhojingptstage.azurecr.io/${IMAGE}
 
 az containerapp up \
-  --name "${NAME}" \
-  --resource-group rg-hojingpt-${ENV} \
+  --name ca-hojingpt-stage-001 \
+  --resource-group rg-hojingpt-stage \
   --location japaneast \
-  --environment cae-hojingpt-${ENV}-001 \
-  --image "${IMAGE}" \
+  --environment cae-hojingpt-stage-001 \
+  --image "crhojingptstage.azurecr.io/${IMAGE}" \
   --target-port 80 \
   --ingress external \
   --query properties.configuration.ingress.fqdn \
-  --env-vars "PORT=80" "${MODE}=1"
+  --env-vars "PORT=80" "staging=1"
+```
 
-az containerapp logs show -n ca-hojingpt-${ENV}-001 -g rg-hojingpt-${ENV}
+### Build and Deploy for production
+
+```bash
+export IMAGE=hojingpt/app:v0.1
+
+# build and push
+az acr build --registry crhojingptprod --platform linux/amd64 --image ${IMAGE} .
+
+# check if needed
+# az acr login --name crhojingptprod
+# docker pull crhojingptprod.azurecr.io/${IMAGE}
+
+az containerapp up \
+  --name ca-hojingpt-prod-001 \
+  --resource-group rg-hojingpt-prod \
+  --location japaneast \
+  --environment cae-hojingpt-prod-001 \
+  --image "crhojingptprod.azurecr.io/${IMAGE}" \
+  --target-port 80 \
+  --ingress external \
+  --query properties.configuration.ingress.fqdn \
+  --env-vars "PORT=80" "prod=1"
 ```

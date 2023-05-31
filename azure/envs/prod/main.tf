@@ -172,17 +172,15 @@ module "mysql" {
 }
 
 module "app" {
-  source              = "../../modules/app"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  registory_name      = "crhojingpt${local.env}"
-  user_assigned_ids   = [module.security.user_assigned_identity.id]
-  subnet_id           = module.network.subnet_app.id
-  tags                = local.tags
-
-  # load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
-  log_analytics_workspace_id                  = module.logging.log_analytics_workspace.id
+  source                     = "../../modules/app"
+  resource_group_name        = data.azurerm_resource_group.main.name
+  location                   = data.azurerm_resource_group.main.location
+  name                       = "hojingpt-${local.env}"
+  registory_name             = "crhojingpt${local.env}"
+  user_assigned_ids          = [module.security.user_assigned_identity.id]
+  subnet_id                  = module.network.subnet_app.id
+  log_analytics_workspace_id = module.logging.log_analytics_workspace.id
+  tags                       = local.tags
 }
 
 data "azurerm_lb" "kubernetes_internal" {
@@ -197,13 +195,11 @@ module "frontdoor" {
   name                = "houjingpt-${local.env}-jpeast"
   waf_policy_name     = "wafrgHoujingptStage"
 
-  app = {
-    name                   = "hojingpt-${local.env}-001"
-    # host                   = module.app.container.ingress.0.fqdn
-    # private_link_target_id = module.app.private_link_service.id
+  container_app = {
+    name            = "hojingpt-${local.env}-001"
+    subnet_id       = module.network.subnet_app.id
+    lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
-
-  subnet_id           = module.network.subnet_app.id
 
   domain = {
     name        = local.domain_name

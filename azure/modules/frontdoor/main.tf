@@ -1,26 +1,22 @@
 data "azurerm_container_app" "app" {
-  name                = "ca-${var.app.name}"
+  name                = "ca-${var.container_app.name}"
   resource_group_name = var.resource_group_name
 }
 
-# resource "azurerm_private_link_service" "main" {
-#   count               = 1
-#   name                = "pl-hojingpt-stage-001"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
+resource "azurerm_private_link_service" "app" {
+  name                                        = "pl-${var.container_app.name}"
+  location                                    = var.location
+  resource_group_name                         = var.resource_group_name
+  load_balancer_frontend_ip_configuration_ids = var.container_app.lb_frontend_ids
 
-#   load_balancer_frontend_ip_configuration_ids = [
-#     "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast/providers/Microsoft.Network/loadBalancers/kubernetes-internal/frontendIPConfigurations/ad93f4ce7a5d04a199eff069c54039c5",
-#   ]
+  nat_ip_configuration {
+    name      = "snet-${var.container_app.name}-1"
+    primary   = true
+    subnet_id = var.container_app.subnet_id
+  }
 
-#   nat_ip_configuration {
-#     name      = "snet-${var.name}-1"
-#     primary   = true
-#     subnet_id = var.subnet_id
-#   }
-
-#   tags = var.tags
-# }
+  tags = var.tags
+}
 
 resource "azurerm_cdn_frontdoor_profile" "main" {
   name                     = "afd-${var.name}"
@@ -72,8 +68,7 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
 
   private_link {
     location               = var.location
-    # private_link_target_id = data.azurerm_container_app.app.private_link_target_id
-    private_link_target_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/privateLinkServices/pl-hojingpt-stage-001"
+    private_link_target_id = azurerm_private_link_service.app.id
     request_message        = "frontdoor"
   }
 }
@@ -102,8 +97,8 @@ resource "azurerm_cdn_frontdoor_route" "main" {
     azurerm_cdn_frontdoor_custom_domain.main.id,
   ]
 
-  supported_protocols    = ["Http", "Https"]
-  patterns_to_match      = ["/*"]
+  supported_protocols = ["Http", "Https"]
+  patterns_to_match   = ["/*"]
   # forwarding_protocol    = "HttpsOnly"
   forwarding_protocol    = "MatchRequest"
   link_to_default_domain = true
@@ -111,11 +106,11 @@ resource "azurerm_cdn_frontdoor_route" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
-  name                              = var.waf_policy_name
-  resource_group_name               = var.resource_group_name
-  sku_name                          = var.sku_name
-  enabled                           = true
-  mode                              = "Detection"
+  name                = var.waf_policy_name
+  resource_group_name = var.resource_group_name
+  sku_name            = var.sku_name
+  enabled             = true
+  mode                = "Detection"
 
   managed_rule {
     action  = "Allow" #HACK unneeded...
