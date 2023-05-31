@@ -116,6 +116,11 @@ az network bastion ssh --name bastion-hojingpt-stage-001 \
   --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
   --auth-type AAD
 
+az network bastion ssh --name bastion-hojingpt-prod-001 \
+  --resource-group rg-hojingpt-prod \
+  --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-prod/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-prod-bastion-001 \
+  --auth-type AAD
+
 # SSH
 # 1. tunnel
 az network bastion tunnel --name bastion-hojingpt-stage-001 \

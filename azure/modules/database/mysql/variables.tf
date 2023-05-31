@@ -18,11 +18,13 @@ variable "network" {
 }
 
 variable "sku_name" {
-  type = string
+  type    = string
+  default = "B_Standard_B1s"
 }
 
 variable "db_version" {
-  type = string
+  type    = string
+  default = "8.0.21"
 }
 
 variable "db_name" {
@@ -52,6 +54,23 @@ variable "key_vault_id" {
 
 variable "administrator_login" {
   type = string
+}
+
+variable "high_availability" {
+  type = object({
+    mode                      = string
+    standby_availability_zone = string
+  })
+  default = null
+}
+
+variable "maintenance" {
+  type = object({
+    day_of_week  = number
+    start_hour   = number
+    start_minute = number
+  })
+  default = null
 }
 
 variable "tags" {

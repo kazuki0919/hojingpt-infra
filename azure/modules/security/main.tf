@@ -90,19 +90,3 @@ resource "azurerm_key_vault_access_policy" "users" {
     "DeleteIssuers",
   ]
 }
-
-# TODO: これ本当に必要？
-# resource "azurerm_key_vault_key" "mysql" {
-#   name         = "key-mysql-${var.alias_name}"
-#   key_vault_id = azurerm_key_vault.main.id
-#   key_type     = "RSA"
-#   key_size     = 2048
-
-#   key_opts = [
-#     "sign", "verify", "wrapKey", "unwrapKey", "encrypt", "decrypt",
-#   ]
-
-#   lifecycle {
-#     ignore_changes = [not_before_date]
-#   }
-# }

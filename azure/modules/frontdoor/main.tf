@@ -1,3 +1,27 @@
+data "azurerm_container_app" "app" {
+  name                = "ca-${var.app.name}"
+  resource_group_name = var.resource_group_name
+}
+
+# resource "azurerm_private_link_service" "main" {
+#   count               = 1
+#   name                = "pl-hojingpt-stage-001"
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
+
+#   load_balancer_frontend_ip_configuration_ids = [
+#     "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast/providers/Microsoft.Network/loadBalancers/kubernetes-internal/frontendIPConfigurations/ad93f4ce7a5d04a199eff069c54039c5",
+#   ]
+
+#   nat_ip_configuration {
+#     name      = "snet-${var.name}-1"
+#     primary   = true
+#     subnet_id = var.subnet_id
+#   }
+
+#   tags = var.tags
+# }
+
 resource "azurerm_cdn_frontdoor_profile" "main" {
   name                     = "afd-${var.name}"
   resource_group_name      = var.resource_group_name
@@ -38,17 +62,18 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.main.id
 
   enabled                        = true
-  host_name                      = var.app.host
+  host_name                      = data.azurerm_container_app.app.ingress.0.fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = var.app.host
+  origin_host_header             = data.azurerm_container_app.app.ingress.0.fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
 
   private_link {
     location               = var.location
-    private_link_target_id = var.app.private_link_target_id
+    # private_link_target_id = data.azurerm_container_app.app.private_link_target_id
+    private_link_target_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/privateLinkServices/pl-hojingpt-stage-001"
     request_message        = "frontdoor"
   }
 }

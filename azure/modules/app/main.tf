@@ -31,7 +31,7 @@ resource "azurerm_container_registry" "main" {
 }
 
 resource "azurerm_container_app_environment" "main" {
-  name                           = "cae-${var.app_name}"
+  name                           = "cae-${var.name}-001"
   location                       = var.location
   resource_group_name            = var.resource_group_name
   log_analytics_workspace_id     = var.log_analytics_workspace_id
@@ -39,31 +39,25 @@ resource "azurerm_container_app_environment" "main" {
   internal_load_balancer_enabled = true
   tags                           = var.tags
 
-  # HACK: Once created, it cannot be changed by terraform...
-  #   - https://stackoverflow.com/questions/73811960/how-can-i-modify-container-app-environment-customerid
+  # HACK: Once created, it cannot be changed by terraform... see: https://stackoverflow.com/questions/73811960/how-can-i-modify-container-app-environment-customerid
   lifecycle {
     ignore_changes = [log_analytics_workspace_id]
   }
 }
 
-data "azurerm_container_app" "main" {
-  name                = "ca-${var.app_name}"
-  resource_group_name = var.resource_group_name
-}
+# resource "azurerm_private_link_service" "main" {
+#   count               = length(var.load_balancer_frontend_ip_configuration_ids) > 0 ? 1 : 0
+#   name                = "pl-${var.name}"
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
 
-resource "azurerm_private_link_service" "main" {
-  count               = length(var.load_balancer_frontend_ip_configuration_ids) > 0 ? 1 : 0
-  name                = "pl-${var.app_name}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+#   load_balancer_frontend_ip_configuration_ids = var.load_balancer_frontend_ip_configuration_ids
 
-  load_balancer_frontend_ip_configuration_ids = var.load_balancer_frontend_ip_configuration_ids
+#   nat_ip_configuration {
+#     name      = "snet-${var.name}-1"
+#     primary   = true
+#     subnet_id = var.subnet_id
+#   }
 
-  nat_ip_configuration {
-    name      = "snet-${var.app_name}-1"
-    primary   = true
-    subnet_id = var.subnet_id
-  }
-
-  tags = var.tags
-}
+#   tags = var.tags
+# }

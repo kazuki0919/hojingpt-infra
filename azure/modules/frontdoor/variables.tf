@@ -12,9 +12,14 @@ variable "name" {
 
 variable "app" {
   type = object({
-    host                   = string
-    private_link_target_id = string
+    name                   = string
+    # host                   = string
+    # private_link_target_id = string
   })
+}
+
+variable "subnet_id" {
+  type = string
 }
 
 variable "domain" {

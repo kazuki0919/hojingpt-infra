@@ -83,7 +83,6 @@ module "logging" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  retention_in_days   = 30
   tags                = local.tags
 }
 
@@ -113,7 +112,12 @@ module "redis" {
   name                 = "hojingpt-${local.env}"
   storage_account_name = "sthojingptredis${local.env}"
   user_assigned_ids    = [module.security.user_assigned_identity.id]
-  subnet_id            = module.network.subnet_app.id
+
+  network = {
+    vnet_id   = module.network.vnet.id
+    subnet_id = module.network.subnet_app.id
+  }
+
   tags                 = local.tags
 }
 
@@ -122,9 +126,7 @@ module "mysql" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  sku_name            = "B_Standard_B1s"
   key_vault_id        = module.security.key_vault.id
-  db_version          = "8.0.21"
   db_name             = "hojingpt"
   administrator_login = "hojingpt"
 
@@ -151,12 +153,12 @@ module "app" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   registory_name      = "crhojingpt${local.env}"
-  app_name            = "hojingpt-${local.env}-001"
+  name                = "hojingpt-${local.env}"
   user_assigned_ids   = [module.security.user_assigned_identity.id]
   subnet_id           = module.network.subnet_app.id
   tags                = local.tags
 
-  load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
+  # load_balancer_frontend_ip_configuration_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   log_analytics_workspace_id                  = module.logging.log_analytics_workspace.id
 }
 
@@ -168,9 +170,12 @@ module "frontdoor" {
   waf_policy_name     = "wafrgHoujingptStage"
 
   app = {
-    host                   = module.app.container.ingress.0.fqdn
-    private_link_target_id = module.app.private_link_service.id
+    name                   = "hojingpt-${local.env}-001"
+    # host                   = module.app.container.ingress.0.fqdn
+    # private_link_target_id = module.app.private_link_service.id
   }
+
+  subnet_id           = module.network.subnet_app.id
 
   domain = {
     name        = local.domain_name

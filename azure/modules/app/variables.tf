@@ -1,4 +1,4 @@
-variable "app_name" {
+variable "name" {
   type = string
 }
 
@@ -19,7 +19,8 @@ variable "user_assigned_ids" {
 }
 
 variable "load_balancer_frontend_ip_configuration_ids" {
-  type = list(string)
+  type    = list(string)
+  default = []
 }
 
 variable "subnet_id" {

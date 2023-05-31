@@ -11,7 +11,8 @@ variable "location" {
 }
 
 variable "retention_in_days" {
-  type = number
+  type    = number
+  default = 30
 }
 
 variable "tags" {
