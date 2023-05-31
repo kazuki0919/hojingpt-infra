@@ -189,3 +189,27 @@ data "azurerm_lb" "kubernetes_internal" {
   name                = "kubernetes-internal"
   resource_group_name = "MC_salmonsmoke-97ec2d6e-rg_salmonsmoke-97ec2d6e_japaneast"
 }
+
+module "frontdoor" {
+  source              = "../../modules/frontdoor"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "houjingpt-${local.env}-jpeast"
+  waf_policy_name     = "wafrgHoujingptStage"
+
+  app = {
+    name                   = "hojingpt-${local.env}-001"
+    # host                   = module.app.container.ingress.0.fqdn
+    # private_link_target_id = module.app.private_link_service.id
+  }
+
+  subnet_id           = module.network.subnet_app.id
+
+  domain = {
+    name        = local.domain_name
+    host_name   = local.host_name
+    dns_zone_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/dnsZones/staging.hojingpt.com" #TODO
+  }
+
+  tags = local.tags
+}
