@@ -192,7 +192,7 @@ az containerapp up \
 ### Build and Deploy for production
 
 ```bash
-export IMAGE=hojingpt/app:v0.1
+export IMAGE=hojingpt/app:v0.2
 
 # build and push
 az acr build --registry crhojingptprod --platform linux/amd64 --image ${IMAGE} .

@@ -8,4 +8,7 @@ resource "azurerm_subnet" "app" {
     "Microsoft.KeyVault",
     "Microsoft.Storage",
   ]
+
+  private_link_service_network_policies_enabled = false
+  private_endpoint_network_policies_enabled     = false
 }

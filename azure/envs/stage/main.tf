@@ -12,9 +12,8 @@ provider "azurerm" {
 }
 
 locals {
-  env         = "stage"
-  domain_name = "staging-hojingpt-com"
-  host_name   = "staging.hojingpt.com"
+  env     = "stage"
+  domains = ["staging.hojingpt.com"]
 
   allow_ips = [
     "126.208.101.129/32", # takahito.yamatoya's home IP. To be removed at a later.
@@ -29,8 +28,8 @@ locals {
   }
 
   tags = {
-    owner   = "yusuke.yoda"
-    created = "2023.05.10"
+    service = "hojingpt"
+    env     = local.env
   }
 }
 
@@ -166,7 +165,6 @@ module "frontdoor" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "houjingpt-${local.env}-jpeast"
-  waf_policy_name     = "wafrgHoujingptStage"
 
   container_app = {
     name            = "hojingpt-${local.env}-001"
@@ -174,10 +172,10 @@ module "frontdoor" {
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
 
-  domain = {
-    name        = local.domain_name
-    host_name   = local.host_name
-    dns_zone_id = "/subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Network/dnsZones/staging.hojingpt.com" #TODO
+  custom_domains = {
+    for domain in local.domains : "${replace(domain, ".", "-")}" => {
+      host_name = domain
+    }
   }
 
   tags = local.tags

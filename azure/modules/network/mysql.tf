@@ -19,6 +19,9 @@ resource "azurerm_subnet" "mysql" {
       ]
     }
   }
+
+  private_link_service_network_policies_enabled = true
+  private_endpoint_network_policies_enabled     = false
 }
 
 resource "azurerm_network_security_group" "mysql" {

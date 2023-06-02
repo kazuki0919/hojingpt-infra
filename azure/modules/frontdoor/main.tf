@@ -22,7 +22,7 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
   name                     = "afd-${var.name}"
   resource_group_name      = var.resource_group_name
   sku_name                 = var.sku_name
-  response_timeout_seconds = 60
+  response_timeout_seconds = var.response_timeout_seconds
   tags                     = var.tags
 }
 
@@ -36,7 +36,6 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
   session_affinity_enabled = false
 
-  #TODO: Shoud change value to 10
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 0
 
   load_balancing {
@@ -44,12 +43,11 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
     successful_samples_required = 3
   }
 
-  #TODO
   health_probe {
-    path                = "/"
-    request_type        = "HEAD"
-    protocol            = "Http"
-    interval_in_seconds = 100
+    path                = var.health.path
+    request_type        = var.health.request_type
+    protocol            = var.health.protocol
+    interval_in_seconds = var.health.interval_in_seconds
   }
 }
 
@@ -74,14 +72,19 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "main" {
-  name                     = var.domain.name
+  for_each                 = var.custom_domains
+  name                     = each.key
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
-  dns_zone_id              = var.domain.dns_zone_id
-  host_name                = var.domain.host_name
+  dns_zone_id              = each.value.dns_zone_id
+  host_name                = each.value.host_name
 
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
+  }
+
+  lifecycle {
+    ignore_changes = [dns_zone_id]
   }
 }
 
@@ -94,42 +97,35 @@ resource "azurerm_cdn_frontdoor_route" "main" {
   ]
 
   cdn_frontdoor_custom_domain_ids = [
-    azurerm_cdn_frontdoor_custom_domain.main.id,
+    for domain in azurerm_cdn_frontdoor_custom_domain.main : domain.id
   ]
 
-  supported_protocols = ["Http", "Https"]
-  patterns_to_match   = ["/*"]
-  # forwarding_protocol    = "HttpsOnly"
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
   forwarding_protocol    = "MatchRequest"
   link_to_default_domain = true
   https_redirect_enabled = true
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.main]
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
-  name                = var.waf_policy_name
+  name                = "waffd${replace(var.name, "-", "")}"
   resource_group_name = var.resource_group_name
   sku_name            = var.sku_name
   enabled             = true
   mode                = "Detection"
 
   managed_rule {
-    action  = "Allow" #HACK unneeded...
+    action  = "Log"
     type    = "Microsoft_DefaultRuleSet"
     version = "2.0"
   }
 
   managed_rule {
-    action  = "Allow" #HACK unneeded...
+    action  = "Log"
     type    = "Microsoft_BotManagerRuleSet"
     version = "1.0"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      #HACK unneeded...
-      managed_rule.0.action,
-      managed_rule.1.action,
-    ]
   }
 }
 
@@ -146,8 +142,11 @@ resource "azurerm_cdn_frontdoor_security_policy" "main" {
           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.main.id
         }
 
-        domain {
-          cdn_frontdoor_domain_id = replace(azurerm_cdn_frontdoor_custom_domain.main.id, "customDomains", "customdomains") #HACK
+        dynamic "domain" {
+          for_each = var.custom_domains
+          content {
+            cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.main[domain.key].id
+          }
         }
 
         patterns_to_match = ["/*"]
