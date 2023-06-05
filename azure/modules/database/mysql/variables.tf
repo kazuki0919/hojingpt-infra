@@ -80,6 +80,17 @@ variable "diagnostics" {
   })
 }
 
+variable "parameters" {
+  type    = map(string)
+  default = {
+    require_secure_transport               = "OFF"
+    slow_query_log                         = "ON"
+    long_query_time                        = "0.8"
+    log_queries_not_using_indexes          = "ON"
+    log_throttle_queries_not_using_indexes = "5"
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

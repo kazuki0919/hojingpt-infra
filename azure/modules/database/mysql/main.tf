@@ -59,10 +59,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 }
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {
-  for_each = {
-    # interactive_timeout = "600"
-    require_secure_transport = "OFF"
-  }
+  for_each            = var.parameters
   name                = each.key
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.main.name
