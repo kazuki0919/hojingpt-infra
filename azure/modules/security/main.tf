@@ -27,6 +27,35 @@ resource "azurerm_key_vault" "main" {
   tags = var.tags
 }
 
+resource "azurerm_monitor_diagnostic_setting" "main" {
+  name               = "kv-${var.name}-logs-001"
+  target_resource_id = azurerm_key_vault.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
+  }
+}
+
 resource "azurerm_key_vault_access_policy" "main" {
   key_vault_id = azurerm_key_vault.main.id
   tenant_id    = data.azurerm_client_config.self.tenant_id

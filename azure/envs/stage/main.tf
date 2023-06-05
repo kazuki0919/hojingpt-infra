@@ -61,22 +61,6 @@ module "network" {
   tags = local.tags
 }
 
-module "security" {
-  source              = "../../modules/security"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  kv_allow_ips        = local.allow_ips
-  kv_users            = local.users
-
-  kv_subnets = [
-    module.network.subnet_app.id,
-    module.network.subnet_mysql.id,
-  ]
-
-  tags = local.tags
-}
-
 module "logging" {
   source              = "../../modules/logging"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -92,6 +76,23 @@ locals {
   }
 }
 
+module "security" {
+  source              = "../../modules/security"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  kv_allow_ips        = local.allow_ips
+  kv_users            = local.users
+
+  kv_subnets = [
+    module.network.subnet_app.id,
+    module.network.subnet_mysql.id,
+  ]
+
+  diagnostics = local.diagnostics
+  tags        = local.tags
+}
+
 module "monitoring" {
   source              = "../../modules/monitoring"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -101,15 +102,15 @@ module "monitoring" {
 }
 
 module "bastion" {
-  source                     = "../../modules/bastion"
-  resource_group_name        = data.azurerm_resource_group.main.name
-  location                   = data.azurerm_resource_group.main.location
-  name                       = "hojingpt-${local.env}"
-  ssh_key                    = "ssh-hojingpt-${local.env}-001"
-  bastion_subnet_id          = module.network.subnet_bastion.id
-  vm_subnet_id               = module.network.subnet_app.id
-  diagnostics                = local.diagnostics
-  tags                       = local.tags
+  source              = "../../modules/bastion"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  ssh_key             = "ssh-hojingpt-${local.env}-001"
+  bastion_subnet_id   = module.network.subnet_bastion.id
+  vm_subnet_id        = module.network.subnet_app.id
+  diagnostics         = local.diagnostics
+  tags                = local.tags
 }
 
 module "redis" {
@@ -152,16 +153,16 @@ module "mysql" {
 }
 
 module "app" {
-  source                     = "../../modules/app"
-  resource_group_name        = data.azurerm_resource_group.main.name
-  location                   = data.azurerm_resource_group.main.location
-  name                       = "hojingpt-${local.env}"
-  registory_name             = "crhojingpt${local.env}"
-  user_assigned_ids          = [module.security.user_assigned_identity.id]
-  subnet_id                  = module.network.subnet_app.id
-  log_analytics_workspace_id = module.logging.log_analytics_workspace.id
-  key_vault_object_id        = module.security.key_vault_access_policy.object_id
-  tags                       = local.tags
+  source              = "../../modules/app"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  registory_name      = "crhojingpt${local.env}"
+  user_assigned_ids   = [module.security.user_assigned_identity.id]
+  subnet_id           = module.network.subnet_app.id
+  key_vault_object_id = module.security.key_vault_access_policy.object_id
+  diagnostics         = local.diagnostics
+  tags                = local.tags
 }
 
 data "azurerm_lb" "kubernetes_internal" {

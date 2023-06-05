@@ -25,6 +25,13 @@ variable "kv_subnets" {
   default = []
 }
 
+variable "diagnostics" {
+  type = object({
+    log_analytics_workspace_id = string
+    storage_account_id         = string
+  })
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

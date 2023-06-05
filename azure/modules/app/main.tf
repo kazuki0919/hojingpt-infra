@@ -36,11 +36,40 @@ resource "azurerm_role_assignment" "acr" {
   role_definition_name = "AcrPull"
 }
 
+resource "azurerm_monitor_diagnostic_setting" "main" {
+  name               = "acr-${var.name}-logs-001"
+  target_resource_id = azurerm_container_registry.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
+  }
+}
+
 resource "azurerm_container_app_environment" "main" {
   name                           = "cae-${var.name}-001"
   location                       = var.location
   resource_group_name            = var.resource_group_name
-  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  log_analytics_workspace_id     = var.diagnostics.log_analytics_workspace_id
   infrastructure_subnet_id       = var.subnet_id
   internal_load_balancer_enabled = true
   tags                           = var.tags

@@ -27,12 +27,15 @@ variable "subnet_id" {
   type = string
 }
 
-variable "log_analytics_workspace_id" {
+variable "key_vault_object_id" {
   type = string
 }
 
-variable "key_vault_object_id" {
-  type = string
+variable "diagnostics" {
+  type = object({
+    log_analytics_workspace_id = string
+    storage_account_id         = string
+  })
 }
 
 variable "tags" {
