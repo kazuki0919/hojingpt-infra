@@ -85,3 +85,28 @@ resource "azurerm_virtual_machine_extension" "sshlogin" {
   type_handler_version       = "1.0"
   auto_upgrade_minor_version = true
 }
+
+resource "azurerm_monitor_diagnostic_setting" "bastion" {
+  name               = "bastion-${var.name}-logs-001"
+  target_resource_id = azurerm_bastion_host.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
+  }
+}

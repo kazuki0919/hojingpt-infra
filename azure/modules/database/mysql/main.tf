@@ -76,3 +76,32 @@ resource "azurerm_mysql_flexible_database" "main" {
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.main.name
 }
+
+resource "azurerm_monitor_diagnostic_setting" "main" {
+  name               = "mysql-${var.name}-logs-001"
+  target_resource_id = azurerm_mysql_flexible_server.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
+  }
+}

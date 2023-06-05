@@ -30,6 +30,12 @@ resource "azurerm_container_registry" "main" {
   tags = var.tags
 }
 
+resource "azurerm_role_assignment" "acr" {
+  scope                = azurerm_container_registry.main.id
+  principal_id         = var.key_vault_object_id
+  role_definition_name = "AcrPull"
+}
+
 resource "azurerm_container_app_environment" "main" {
   name                           = "cae-${var.name}-001"
   location                       = var.location
@@ -44,20 +50,3 @@ resource "azurerm_container_app_environment" "main" {
     ignore_changes = [log_analytics_workspace_id]
   }
 }
-
-# resource "azurerm_private_link_service" "main" {
-#   count               = length(var.load_balancer_frontend_ip_configuration_ids) > 0 ? 1 : 0
-#   name                = "pl-${var.name}"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-
-#   load_balancer_frontend_ip_configuration_ids = var.load_balancer_frontend_ip_configuration_ids
-
-#   nat_ip_configuration {
-#     name      = "snet-${var.name}-1"
-#     primary   = true
-#     subnet_id = var.subnet_id
-#   }
-
-#   tags = var.tags
-# }

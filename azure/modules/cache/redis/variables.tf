@@ -30,10 +30,6 @@ variable "redis_version" {
   default = "6"
 }
 
-variable "storage_account_name" {
-  type = string
-}
-
 variable "user_assigned_ids" {
   type = list(string)
 }
@@ -70,7 +66,7 @@ variable "maxmemory_policy" {
   default = "volatile-lru"
 }
 
-variable "rds" {
+variable "rdb" {
   type = object({
     backup_frequency          = number
     backup_max_snapshot_count = number
@@ -89,6 +85,13 @@ variable "maintenance" {
     start_hour_utc = number
   })
   default = null
+}
+
+variable "diagnostics" {
+  type = object({
+    log_analytics_workspace_id = string
+    storage_account_id         = string
+  })
 }
 
 variable "tags" {

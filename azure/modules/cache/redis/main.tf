@@ -12,18 +12,17 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
 }
 
 resource "azurerm_storage_account" "persistence" {
-  name                              = var.storage_account_name
-  resource_group_name               = var.resource_group_name
-  location                          = var.location
-  public_network_access_enabled     = false
+  name                          = "st${replace(var.name, "-", "")}redis"
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
+  public_network_access_enabled = true  # If false, an error occurs.
+  account_tier                  = "Standard"
+  account_kind                  = "StorageV2"
+  account_replication_type      = "GRS"
 
-  account_tier                      = "Premium"
-  account_kind                      = "BlockBlobStorage"
-  account_replication_type          = "ZRS"
-
-  # account_tier              = "Standard"
-  # account_kind              = "StorageV2"
-  # account_replication_type  = "GRS"
+  # account_tier                      = "Premium"
+  # account_kind                      = "BlockBlobStorage"
+  # account_replication_type          = "ZRS"
 }
 
 resource "azurerm_redis_cache" "main" {
@@ -56,10 +55,10 @@ resource "azurerm_redis_cache" "main" {
     aof_storage_connection_string_0 = var.aof_enabled == true ? azurerm_storage_account.persistence.primary_connection_string : null
     aof_storage_connection_string_1 = null
 
-    rdb_backup_enabled              = var.rds == null ? null : true
-    rdb_backup_frequency            = var.rds == null ? null : var.rds.backup_frequency
-    rdb_backup_max_snapshot_count   = var.rds == null ? null : var.rds.backup_max_snapshot_count
-    rdb_storage_connection_string   = var.rds == null ? null : azurerm_storage_account.persistence.primary_connection_string
+    rdb_backup_enabled              = var.rdb == null ? null : true
+    rdb_backup_frequency            = var.rdb == null ? null : var.rdb.backup_frequency
+    rdb_backup_max_snapshot_count   = var.rdb == null ? null : var.rdb.backup_max_snapshot_count
+    rdb_storage_connection_string   = var.rdb == null ? null : azurerm_storage_account.persistence.primary_connection_string
   }
 
   dynamic "patch_schedule" {
@@ -72,6 +71,12 @@ resource "azurerm_redis_cache" "main" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      redis_configuration.0.rdb_storage_connection_string
+    ]
+  }
 }
 
 resource "azurerm_private_endpoint" "main" {
@@ -90,5 +95,34 @@ resource "azurerm_private_endpoint" "main" {
     private_connection_resource_id = azurerm_redis_cache.main.id
     is_manual_connection           = false
     subresource_names              = ["redisCache"]
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "main" {
+  name               = "redis-${var.name}-logs-001"
+  target_resource_id = azurerm_redis_cache.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
   }
 }

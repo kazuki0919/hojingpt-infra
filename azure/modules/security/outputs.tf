@@ -5,3 +5,7 @@ output "user_assigned_identity" {
 output "key_vault" {
   value = azurerm_key_vault.main
 }
+
+output "key_vault_access_policy" {
+  value = azurerm_key_vault_access_policy.main
+}

@@ -31,6 +31,10 @@ variable "log_analytics_workspace_id" {
   type = string
 }
 
+variable "key_vault_object_id" {
+  type = string
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

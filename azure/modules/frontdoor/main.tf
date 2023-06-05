@@ -154,3 +154,32 @@ resource "azurerm_cdn_frontdoor_security_policy" "main" {
     }
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "main" {
+  name               = "afd-${var.name}-logs-001"
+  target_resource_id = azurerm_cdn_frontdoor_profile.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
+  }
+}
