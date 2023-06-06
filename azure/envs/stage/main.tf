@@ -13,7 +13,10 @@ provider "azurerm" {
 
 locals {
   env     = "stage"
-  domains = ["staging.hojingpt.com"]
+  domains = [
+    "staging.hojingpt.com",
+    "staging-azure.hojingpt.com",
+  ]
 
   allow_ips = [
     "126.208.101.129/32", # takahito.yamatoya's home IP. To be removed at a later.

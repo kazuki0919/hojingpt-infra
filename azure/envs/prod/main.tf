@@ -219,7 +219,7 @@ module "frontdoor" {
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
 
-  #
+  # TODO
   # custom_domains = {
   #   for domain in local.domains : "${replace(domain, ".", "-")}" => {
   #     host_name = domain
