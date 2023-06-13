@@ -62,6 +62,7 @@ The following resources are manually configured.
 - Vault Key
 - SSH Key
 - Container Apps
+- Logic Apps
 
 The following resources are partially configured manually.
 
@@ -128,7 +129,7 @@ az network bastion tunnel --name bastion-hojingpt-stage-001 \
   --resource-port 22 --port 5022
 
 # 2. then, connect to localhost:5022
-ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem azureuser@127.0.0.1
+ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem -p 5022 azureuser@127.0.0.1
 ```
 
 # MySQL
