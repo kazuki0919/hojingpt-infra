@@ -18,6 +18,7 @@ mysqldump -h ${HOST} -u root -p -B hojingpt -n \
  > hojingpt.dump
 
 # Download dump file
+gcloud config set project hojingpt-staging
 gcloud compute scp --recurse --zone=asia-northeast1-b hojingpt-bastion-staging:hojingpt.dump ~/Downloads/hojingpt.dump
 hojingpt.dump
 

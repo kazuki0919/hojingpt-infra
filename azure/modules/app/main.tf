@@ -36,7 +36,7 @@ resource "azurerm_role_assignment" "acr" {
   role_definition_name = "AcrPull"
 }
 
-resource "azurerm_monitor_diagnostic_setting" "main" {
+resource "azurerm_monitor_diagnostic_setting" "acr" {
   name               = "acr-${var.name}-logs-001"
   target_resource_id = azurerm_container_registry.main.id
 
@@ -77,5 +77,34 @@ resource "azurerm_container_app_environment" "main" {
   # HACK: Once created, it cannot be changed by terraform... see: https://stackoverflow.com/questions/73811960/how-can-i-modify-container-app-environment-customerid
   lifecycle {
     ignore_changes = [log_analytics_workspace_id]
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "cae" {
+  name               = "cae-${var.name}-logs-001"
+  target_resource_id = azurerm_container_app_environment.main.id
+
+  storage_account_id         = var.diagnostics.storage_account_id
+  log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_log {
+    category_group = "audit"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+  }
+
+  # HACK
+  lifecycle {
+    ignore_changes = [
+      storage_account_id,
+      log_analytics_workspace_id,
+    ]
   }
 }

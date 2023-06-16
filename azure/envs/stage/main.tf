@@ -99,7 +99,7 @@ module "security" {
 module "monitoring" {
   source              = "../../modules/monitoring"
   resource_group_name = data.azurerm_resource_group.main.name
-  location            = "eastasia"
+  location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
   tags                = local.tags
 }
@@ -130,6 +130,14 @@ module "redis" {
 
   diagnostics = local.diagnostics
   tags        = local.tags
+
+  # TODO: Delete when persistence is no longer required.
+  sku_name                        = "Premium"
+  family                          = "P"
+  capacity                        = 1
+  maxfragmentationmemory_reserved = 627
+  maxmemory_delta                 = 627
+  maxmemory_reserved              = 627
 }
 
 module "mysql" {
@@ -190,6 +198,8 @@ module "frontdoor" {
       host_name = domain
     }
   }
+
+  origin_host_header = "staging-azure.hojingpt.com"
 
   diagnostics = local.diagnostics
   tags        = local.tags

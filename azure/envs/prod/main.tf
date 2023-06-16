@@ -226,6 +226,8 @@ module "frontdoor" {
   #   }
   # }
 
+  origin_host_header = "ca-hojingpt-prod-001.salmonsmoke-97ec2d6e.japaneast.azurecontainerapps.io"
+
   diagnostics = local.diagnostics
   tags        = local.tags
 }

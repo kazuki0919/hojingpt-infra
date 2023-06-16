@@ -51,6 +51,10 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
   }
 }
 
+variable "origin_host_header" {
+  type = string
+}
+
 resource "azurerm_cdn_frontdoor_origin" "app" {
   name                          = "fdo-${var.name}-001"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.main.id
@@ -59,7 +63,7 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
   host_name                      = data.azurerm_container_app.app.ingress.0.fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = data.azurerm_container_app.app.ingress.0.fqdn
+  origin_host_header             = var.origin_host_header
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true

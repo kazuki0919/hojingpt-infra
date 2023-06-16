@@ -62,6 +62,8 @@ The following resources are manually configured.
 - Vault Key
 - SSH Key
 - Container Apps
+    - Approval of private endpoint connections
+    - Custom domain settings
 - Logic Apps
 
 The following resources are partially configured manually.
