@@ -199,8 +199,6 @@ module "frontdoor" {
     }
   }
 
-  origin_host_header = "staging-azure.hojingpt.com"
-
   diagnostics = local.diagnostics
   tags        = local.tags
 }

@@ -52,7 +52,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
 }
 
 variable "origin_host_header" {
-  type = string
+  type    = string
+  default = null
 }
 
 resource "azurerm_cdn_frontdoor_origin" "app" {
