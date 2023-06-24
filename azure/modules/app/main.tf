@@ -88,11 +88,11 @@ resource "azurerm_monitor_diagnostic_setting" "cae" {
   log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
 
   enabled_log {
-    category_group = "allLogs"
+    category = "ContainerAppConsoleLogs"
   }
 
   enabled_log {
-    category_group = "audit"
+    category = "ContainerAppSystemLogs"
   }
 
   metric {

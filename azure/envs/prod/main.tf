@@ -71,13 +71,7 @@ module "logging" {
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
   tags                = local.tags
-}
-
-locals {
-  diagnostics = {
-    storage_account_id         = module.logging.storage_account.id
-    log_analytics_workspace_id = module.logging.log_analytics_workspace.id
-  }
+  retention_in_days   = 730
 }
 
 module "security" {
@@ -93,16 +87,8 @@ module "security" {
     module.network.subnet_mysql.id,
   ]
 
-  diagnostics = local.diagnostics
+  diagnostics = module.logging.diagnostics
   tags        = local.tags
-}
-
-module "monitoring" {
-  source              = "../../modules/monitoring"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = "eastasia"
-  name                = "hojingpt-${local.env}"
-  tags                = local.tags
 }
 
 module "bastion" {
@@ -113,7 +99,7 @@ module "bastion" {
   ssh_key             = "ssh-hojingpt-${local.env}-001"
   bastion_subnet_id   = module.network.subnet_bastion.id
   vm_subnet_id        = module.network.subnet_app.id
-  diagnostics         = local.diagnostics
+  diagnostics         = module.logging.diagnostics
   tags                = local.tags
 }
 
@@ -148,7 +134,7 @@ module "redis" {
     start_hour_utc = 16
   }
 
-  diagnostics = local.diagnostics
+  diagnostics = module.logging.diagnostics
   tags        = local.tags
 }
 
@@ -185,7 +171,7 @@ module "mysql" {
     start_minute = 0
   }
 
-  diagnostics = local.diagnostics
+  diagnostics = module.logging.diagnostics
   tags        = local.tags
 }
 
@@ -198,7 +184,7 @@ module "app" {
   user_assigned_ids   = [module.security.user_assigned_identity.id]
   subnet_id           = module.network.subnet_app.id
   key_vault_object_id = module.security.key_vault_access_policy.object_id
-  diagnostics         = local.diagnostics
+  diagnostics         = module.logging.diagnostics
   tags                = local.tags
 }
 
@@ -228,6 +214,38 @@ module "frontdoor" {
 
   origin_host_header = "ca-hojingpt-prod-001.salmonsmoke-97ec2d6e.japaneast.azurecontainerapps.io"
 
-  diagnostics = local.diagnostics
+  diagnostics = module.logging.diagnostics
   tags        = local.tags
 }
+
+# module "monitoring" {
+#   source              = "../../modules/monitoring"
+#   name                = "hojingpt-${local.env}"
+#   resource_group_name = data.azurerm_resource_group.main.name
+#   location            = data.azurerm_resource_group.main.location
+#   diagnostics         = module.logging.diagnostics
+
+#   container_apps = {
+#     "ca-hojingpt-${local.env}-001" = {}
+#   }
+
+#   mysql = {
+#     "${module.mysql.main.name}" = module.mysql.main.id
+#   }
+
+#   redis = {
+#     "${module.redis.main.name}" = module.redis.main.id
+#   }
+
+#   logicapp_metrics = {
+#     name         = "la-hojingpt-${local.env}-metrics-alert"
+#     callback_url = "https://prod-09.japaneast.logic.azure.com:443/workflows/646aec02cc574ab99878716304c90cea/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=g2NurfeYoEzn0FfAEt2Q8p9r8l9CAA-Lc51VlB9B7Yk"
+#   }
+
+#   logicapp_applogs = {
+#     name         = "la-hojingpt-${local.env}-applogs-alert"
+#     callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/f25d2cc7d66a49be971b9809441ee94d/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dmimCaz4L7bumtmOmrML75GR4yS50KBR3ufATiYRGxg"
+#   }
+
+#   tags = local.tags
+# }

@@ -39,10 +39,9 @@ resource "azurerm_storage_account" "main" {
   account_replication_type      = "GRS"
 }
 
-output "storage_account" {
-  value = azurerm_storage_account.main
-}
-
-output "log_analytics_workspace" {
-  value = azurerm_log_analytics_workspace.main
+output "diagnostics" {
+  value = {
+    storage_account_id         = azurerm_storage_account.main.id
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  }
 }
