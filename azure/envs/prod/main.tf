@@ -218,34 +218,34 @@ module "frontdoor" {
   tags        = local.tags
 }
 
-# module "monitoring" {
-#   source              = "../../modules/monitoring"
-#   name                = "hojingpt-${local.env}"
-#   resource_group_name = data.azurerm_resource_group.main.name
-#   location            = data.azurerm_resource_group.main.location
-#   diagnostics         = module.logging.diagnostics
+module "monitoring" {
+  source              = "../../modules/monitoring"
+  name                = "hojingpt-${local.env}"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  diagnostics         = module.logging.diagnostics
 
-#   container_apps = {
-#     "ca-hojingpt-${local.env}-001" = {}
-#   }
+  container_apps = {
+    "ca-hojingpt-${local.env}-001" = {}
+  }
 
-#   mysql = {
-#     "${module.mysql.main.name}" = module.mysql.main.id
-#   }
+  mysql = {
+    "${module.mysql.main.name}" = module.mysql.main.id
+  }
 
-#   redis = {
-#     "${module.redis.main.name}" = module.redis.main.id
-#   }
+  redis = {
+    "${module.redis.main.name}" = module.redis.main.id
+  }
 
-#   logicapp_metrics = {
-#     name         = "la-hojingpt-${local.env}-metrics-alert"
-#     callback_url = "https://prod-09.japaneast.logic.azure.com:443/workflows/646aec02cc574ab99878716304c90cea/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=g2NurfeYoEzn0FfAEt2Q8p9r8l9CAA-Lc51VlB9B7Yk"
-#   }
+  logicapp_metrics = {
+    name         = "la-hojingpt-${local.env}-metrics-alert"
+    callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/accef70a4e2745b2aeb7dac7a0aa1997/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=AE3hIXhvOW8zg43Uc8eiwWM5lwrc2ODrvRFzd3HXJ9Q"
+  }
 
-#   logicapp_applogs = {
-#     name         = "la-hojingpt-${local.env}-applogs-alert"
-#     callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/f25d2cc7d66a49be971b9809441ee94d/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dmimCaz4L7bumtmOmrML75GR4yS50KBR3ufATiYRGxg"
-#   }
+  logicapp_applogs = {
+    name         = "la-hojingpt-${local.env}-applogs-alert"
+    callback_url = "https://prod-19.japaneast.logic.azure.com:443/workflows/457b86f3b3fa4338a985e53e4cab07cd/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=s1ERPDSEIPxAKGsqCE-4OqY40zgqncE_m_7d0b4imtk"
+  }
 
-#   tags = local.tags
-# }
+  tags = local.tags
+}

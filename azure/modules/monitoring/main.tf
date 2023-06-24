@@ -1,51 +1,6 @@
-variable "name" {
-  type = string
-}
-
-variable "resource_group_name" {
-  type = string
-}
-
-variable "location" {
-  type = string
-}
-
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
-
-variable "container_apps" {
-  type = map(object({
-    max_cpu = optional(number, 10)
-    max_mem = optional(number, 2)
-  }))
-}
-
-variable "mysql" {
-  type    = map(string)
-  default = {}
-}
-
-variable "redis" {
-  type    = map(string)
-  default = {}
-}
-
-variable "logicapp_metrics" {
-  type = object({
-    name         = string
-    callback_url = string
-  })
-}
-
-variable "diagnostics" {
-  type = object({
-    storage_account_id         = string
-    log_analytics_workspace_id = string
-  })
-}
-
+#################################################################################
+# Azure Monitor Action Group
+#################################################################################
 data "azurerm_logic_app_workflow" "metrics" {
   name                = var.logicapp_metrics.name
   resource_group_name = var.resource_group_name
@@ -62,13 +17,6 @@ resource "azurerm_monitor_action_group" "metrics" {
     resource_id             = data.azurerm_logic_app_workflow.metrics.id
     use_common_alert_schema = true
   }
-}
-
-variable "logicapp_applogs" {
-  type = object({
-    name         = string
-    callback_url = string
-  })
 }
 
 data "azurerm_logic_app_workflow" "applogs" {
@@ -89,6 +37,9 @@ resource "azurerm_monitor_action_group" "applogs" {
   }
 }
 
+#################################################################################
+# Azure Monitor Alert: ContainerApps
+#################################################################################
 data "azurerm_container_app" "main" {
   for_each            = var.container_apps
   name                = each.key
@@ -238,6 +189,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" 
   }
 }
 
+#################################################################################
+# Azure Monitor Alert: MySQL
+#################################################################################
 resource "azurerm_monitor_metric_alert" "mysql_cpu" {
   for_each            = var.mysql
   name                = "alert-${each.key}-cpu"
@@ -360,6 +314,63 @@ resource "azurerm_monitor_metric_alert" "mysql_log" {
     threshold        = 70
     metric_namespace = "microsoft.dbformysql/flexibleservers"
     metric_name      = "serverlog_storage_percent"
+    operator         = "GreaterThan"
+    aggregation      = "Average"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.metrics.id
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+#################################################################################
+# Azure Monitor Alert: Redis
+#################################################################################
+resource "azurerm_monitor_metric_alert" "cpu" {
+  for_each            = var.redis
+  name                = "alert-${each.key}-cpu"
+  description         = "[WARN] Redis CPU usage exceeded 70%"
+  resource_group_name = var.resource_group_name
+  scopes              = [each.value]
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  criteria {
+    threshold        = 70
+    metric_namespace = "microsoft.cache/redis"
+    metric_name      = "percentProcessorTime"
+    operator         = "GreaterThan"
+    aggregation      = "Average"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.metrics.id
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "mem" {
+  for_each            = var.redis
+  name                = "alert-${each.key}-mem"
+  description         = "[WARN] Redis Memory usage exceeded 70%"
+  resource_group_name = var.resource_group_name
+  scopes              = [each.value]
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  criteria {
+    threshold        = 70
+    metric_namespace = "microsoft.cache/redis"
+    metric_name      = "usedmemorypercentage"
     operator         = "GreaterThan"
     aggregation      = "Average"
   }
