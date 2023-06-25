@@ -106,23 +106,11 @@ resource "azurerm_monitor_diagnostic_setting" "main" {
   log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
 
   enabled_log {
-    category_group = "allLogs"
-  }
-
-  enabled_log {
-    category_group = "audit"
+    category = "ConnectedClientList"
   }
 
   metric {
     category = "AllMetrics"
     enabled  = false
-  }
-
-  # HACK
-  lifecycle {
-    ignore_changes = [
-      storage_account_id,
-      log_analytics_workspace_id,
-    ]
   }
 }

@@ -94,7 +94,7 @@ resource "azurerm_monitor_diagnostic_setting" "bastion" {
   log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id
 
   enabled_log {
-    category_group = "allLogs"
+    category = "BastionAuditLogs"
   }
 
   metric {
