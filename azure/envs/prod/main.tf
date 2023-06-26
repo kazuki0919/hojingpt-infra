@@ -16,7 +16,9 @@ locals {
 
   domains = [
     "hojingpt.com",
-    "hojingai.com",
+    "azure.hojingpt.com",
+    # "hojingai.com",
+    # "azure.hojingai.com",
   ]
 
   allow_ips = [
@@ -205,14 +207,11 @@ module "frontdoor" {
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
 
-  # TODO
-  # custom_domains = {
-  #   for domain in local.domains : "${replace(domain, ".", "-")}" => {
-  #     host_name = domain
-  #   }
-  # }
-
-  origin_host_header = "ca-hojingpt-prod-001.salmonsmoke-97ec2d6e.japaneast.azurecontainerapps.io"
+  custom_domains = {
+    for domain in local.domains : "${replace(domain, ".", "-")}" => {
+      host_name = domain
+    }
+  }
 
   diagnostics = module.logging.diagnostics
   tags        = local.tags

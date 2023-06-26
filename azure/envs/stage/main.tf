@@ -17,6 +17,8 @@ locals {
   domains = [
     "staging.hojingpt.com",
     "staging-azure.hojingpt.com",
+    # "staging.hojingai.com",
+    # "staging-azure.hojingai.com",
   ]
 
   allow_ips = [
