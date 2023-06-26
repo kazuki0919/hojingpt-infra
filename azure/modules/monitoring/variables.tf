@@ -22,14 +22,28 @@ variable "container_apps" {
   }))
 }
 
+variable "frontdoor" {
+  type        = map(string)
+  default     = {}
+  description = "Name and ID pairs for FrontDoor profiles"
+}
+
+variable "webtest" {
+  type        = map(string)
+  default     = {}
+  description = "Name and domain pairs for Web Test"
+}
+
 variable "mysql" {
-  type    = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
+  description = "Name and ID pairs for MySQL"
 }
 
 variable "redis" {
-  type    = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
+  description = "Name and ID pairs for Redis"
 }
 
 variable "logicapp_metrics" {

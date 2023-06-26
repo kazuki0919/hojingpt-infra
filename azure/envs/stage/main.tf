@@ -208,6 +208,10 @@ module "monitoring" {
     "${module.redis.main.name}" = module.redis.main.id
   }
 
+  # webtest = {
+  #   "${module.frontdoor.main.name}" = "https://staging-azure.hojingpt.com/sys/health"
+  # }
+
   logicapp_metrics = {
     name         = "la-hojingpt-${local.env}-metrics-alert"
     callback_url = "https://prod-09.japaneast.logic.azure.com:443/workflows/646aec02cc574ab99878716304c90cea/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=g2NurfeYoEzn0FfAEt2Q8p9r8l9CAA-Lc51VlB9B7Yk"

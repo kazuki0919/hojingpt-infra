@@ -39,15 +39,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 0
 
   load_balancing {
-    sample_size                 = 4
-    successful_samples_required = 3
-  }
-
-  health_probe {
-    path                = var.health.path
-    request_type        = var.health.request_type
-    protocol            = var.health.protocol
-    interval_in_seconds = var.health.interval_in_seconds
+    sample_size                        = 4
+    successful_samples_required        = 3
+    additional_latency_in_milliseconds = 1000
   }
 }
 

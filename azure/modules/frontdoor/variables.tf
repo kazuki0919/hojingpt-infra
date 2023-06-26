@@ -26,16 +26,6 @@ variable "custom_domains" {
   default = {}
 }
 
-variable "health" {
-  type = object({
-    path                = optional(string, "/sys/health")
-    request_type        = optional(string, "GET")
-    protocol            = optional(string, "Http")
-    interval_in_seconds = optional(number, 60)
-  })
-  default = {}
-}
-
 variable "sku_name" {
   type    = string
   default = "Premium_AzureFrontDoor"

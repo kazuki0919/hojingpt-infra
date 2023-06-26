@@ -195,7 +195,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" 
 resource "azurerm_monitor_metric_alert" "mysql_cpu" {
   for_each            = var.mysql
   name                = "alert-${each.key}-cpu"
-  description         = "[WARN] MySQL CPU usage exceeded 70%"
+  description         = "[WARN] MySQL CPU usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -222,7 +222,7 @@ resource "azurerm_monitor_metric_alert" "mysql_cpu" {
 resource "azurerm_monitor_metric_alert" "mysql_mem" {
   for_each            = var.mysql
   name                = "alert-${each.key}-mem"
-  description         = "[WARN] MySQL Memory usage exceeded 70%"
+  description         = "[WARN] MySQL Memory usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -249,7 +249,7 @@ resource "azurerm_monitor_metric_alert" "mysql_mem" {
 resource "azurerm_monitor_metric_alert" "mysql_disk" {
   for_each            = var.mysql
   name                = "alert-${each.key}-disk"
-  description         = "[WARN] MySQL Disk usage exceeded 70%"
+  description         = "[WARN] MySQL Disk usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -276,7 +276,7 @@ resource "azurerm_monitor_metric_alert" "mysql_disk" {
 resource "azurerm_monitor_metric_alert" "mysql_io" {
   for_each            = var.mysql
   name                = "alert-${each.key}-io"
-  description         = "[WARN] MySQL I/O usage exceeded 70%"
+  description         = "[WARN] MySQL I/O usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -303,7 +303,7 @@ resource "azurerm_monitor_metric_alert" "mysql_io" {
 resource "azurerm_monitor_metric_alert" "mysql_log" {
   for_each            = var.mysql
   name                = "alert-${each.key}-log"
-  description         = "[WARN] MySQL Log storage usage exceeded 70%"
+  description         = "[WARN] MySQL Log storage usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -333,7 +333,7 @@ resource "azurerm_monitor_metric_alert" "mysql_log" {
 resource "azurerm_monitor_metric_alert" "cpu" {
   for_each            = var.redis
   name                = "alert-${each.key}-cpu"
-  description         = "[WARN] Redis CPU usage exceeded 70%"
+  description         = "[WARN] Redis CPU usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -360,7 +360,7 @@ resource "azurerm_monitor_metric_alert" "cpu" {
 resource "azurerm_monitor_metric_alert" "mem" {
   for_each            = var.redis
   name                = "alert-${each.key}-mem"
-  description         = "[WARN] Redis Memory usage exceeded 70%"
+  description         = "[WARN] Redis Memory usage exceeded 70%. target: ${each.key}"
   resource_group_name = var.resource_group_name
   scopes              = [each.value]
   severity            = 2
@@ -373,6 +373,119 @@ resource "azurerm_monitor_metric_alert" "mem" {
     metric_name      = "usedmemorypercentage"
     operator         = "GreaterThan"
     aggregation      = "Average"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.metrics.id
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+#################################################################################
+# Azure Monitor Alert: FrontDoor
+#################################################################################
+resource "azurerm_monitor_metric_alert" "frontdoor_errors" {
+  for_each            = var.frontdoor
+  name                = "alert-${each.key}-errors"
+  description         = "[CRITICAL] FrontDoor 5xx rate exceeded 70%. target: ${each.key}"
+  resource_group_name = var.resource_group_name
+  scopes              = [each.value]
+  severity            = 0
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  criteria {
+    threshold        = 70
+    metric_namespace = "Microsoft.Cdn/profiles"
+    metric_name      = "Percentage5XX"
+    operator         = "GreaterThan"
+    aggregation      = "Average"
+
+    dimension {
+      name     = "Endpoint"
+      operator = "Include"
+      values   = ["*"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.metrics.id
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+#################################################################################
+# Application Insights
+#################################################################################
+resource "azurerm_application_insights" "web" {
+  name                = "aai-${var.name}-web"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  application_type    = "web"
+  workspace_id        = var.diagnostics.log_analytics_workspace_id
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights_standard_web_test" "main" {
+  for_each                = var.webtest
+  name                    = "test-${each.key}"
+  resource_group_name     = var.resource_group_name
+  location                = var.location
+  application_insights_id = azurerm_application_insights.web.id
+  retry_enabled           = true
+  enabled                 = true
+  timeout                 = 30
+
+  geo_locations = [
+    "us-va-ash-azr",
+    "us-ca-sjc-azr",
+    "apac-jp-kaw-edge",
+    "emea-gb-db3-azr",
+    "emea-nl-ams-azr",
+  ]
+
+  request {
+    url                              = each.value
+    parse_dependent_requests_enabled = false
+  }
+
+  validation_rules {
+    expected_status_code        = 200
+    ssl_cert_remaining_lifetime = 7
+    ssl_check_enabled           = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+      enabled,
+    ]
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "webtest" {
+  for_each            = var.webtest
+  name                = "alert-${each.key}-webtest"
+  description         = "[CRITICAL] Service Down. target: ${each.value}"
+  resource_group_name = var.resource_group_name
+  scopes              = [
+    azurerm_application_insights.web.id,
+    azurerm_application_insights_standard_web_test.main[each.key].id,
+  ]
+  severity            = 0
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  application_insights_web_test_location_availability_criteria {
+    component_id          = azurerm_application_insights.web.id
+    web_test_id           = azurerm_application_insights_standard_web_test.main[each.key].id
+    failed_location_count = 2
   }
 
   action {

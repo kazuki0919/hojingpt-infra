@@ -101,12 +101,4 @@ resource "azurerm_monitor_diagnostic_setting" "bastion" {
     category = "AllMetrics"
     enabled  = false
   }
-
-  # HACK
-  lifecycle {
-    ignore_changes = [
-      storage_account_id,
-      log_analytics_workspace_id,
-    ]
-  }
 }
