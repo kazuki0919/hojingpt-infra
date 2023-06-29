@@ -30,13 +30,14 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 resource "azurerm_storage_account" "main" {
-  name                          = "st${replace(var.name, "-", "")}logs"
-  resource_group_name           = var.resource_group_name
-  location                      = var.location
-  public_network_access_enabled = false
-  account_tier                  = "Standard"
-  account_kind                  = "StorageV2"
-  account_replication_type      = "GRS"
+  name                            = "st${replace(var.name, "-", "")}logs"
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  public_network_access_enabled   = true
+  allow_nested_items_to_be_public = false
+  account_tier                    = "Standard"
+  account_kind                    = "StorageV2"
+  account_replication_type        = "GRS"
 }
 
 output "diagnostics" {

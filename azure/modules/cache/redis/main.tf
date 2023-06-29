@@ -12,17 +12,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
 }
 
 resource "azurerm_storage_account" "persistence" {
-  name                          = "st${replace(var.name, "-", "")}redis"
-  resource_group_name           = var.resource_group_name
-  location                      = var.location
-  public_network_access_enabled = true  # If false, an error occurs.
-  account_tier                  = "Standard"
-  account_kind                  = "StorageV2"
-  account_replication_type      = "GRS"
-
-  # account_tier                      = "Premium"
-  # account_kind                      = "BlockBlobStorage"
-  # account_replication_type          = "ZRS"
+  name                            = "st${replace(var.name, "-", "")}redis"
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  public_network_access_enabled   = true
+  allow_nested_items_to_be_public = false
+  account_tier                    = "Standard"
+  account_kind                    = "StorageV2"
+  account_replication_type        = "GRS"
 }
 
 resource "azurerm_redis_cache" "main" {
@@ -55,10 +52,10 @@ resource "azurerm_redis_cache" "main" {
     aof_storage_connection_string_0 = var.aof_enabled == true ? azurerm_storage_account.persistence.primary_connection_string : null
     aof_storage_connection_string_1 = null
 
-    rdb_backup_enabled              = var.rdb == null ? null : true
-    rdb_backup_frequency            = var.rdb == null ? null : var.rdb.backup_frequency
-    rdb_backup_max_snapshot_count   = var.rdb == null ? null : var.rdb.backup_max_snapshot_count
-    rdb_storage_connection_string   = var.rdb == null ? null : azurerm_storage_account.persistence.primary_connection_string
+    rdb_backup_enabled            = var.rdb == null ? null : true
+    rdb_backup_frequency          = var.rdb == null ? null : var.rdb.backup_frequency
+    rdb_backup_max_snapshot_count = var.rdb == null ? null : var.rdb.backup_max_snapshot_count
+    rdb_storage_connection_string = var.rdb == null ? null : azurerm_storage_account.persistence.primary_connection_string
   }
 
   dynamic "patch_schedule" {
