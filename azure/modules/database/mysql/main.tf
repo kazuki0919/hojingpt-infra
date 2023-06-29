@@ -56,6 +56,13 @@ resource "azurerm_mysql_flexible_server" "main" {
   tags = var.tags
 
   depends_on = [azurerm_private_dns_zone_virtual_network_link.main]
+
+  lifecycle {
+    ignore_changes = [
+      zone,
+      high_availability.0.standby_availability_zone
+    ]
+  }
 }
 
 resource "azurerm_mysql_flexible_server_configuration" "main" {

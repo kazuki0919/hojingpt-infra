@@ -154,7 +154,7 @@ module "mysql" {
     subnet_id = module.network.subnet_mysql.id
   }
 
-  sku_name = "MO_Standard_E2ads_v5"
+  sku_name = "MO_Standard_E4ads_v5"
 
   high_availability = {
     mode                      = "ZoneRedundant"
