@@ -64,6 +64,7 @@ The following resources are manually configured.
 - Container Apps
     - Approval of private endpoint connections
     - Custom domain settings
+    - ID
 - Logic Apps
 
 The following resources are partially configured manually.
