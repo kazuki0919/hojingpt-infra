@@ -65,6 +65,7 @@ The following resources are manually configured.
     - Approval of private endpoint connections
     - Custom domain settings
     - ID
+    - Scale and Replica
 - Logic Apps
 
 The following resources are partially configured manually.
