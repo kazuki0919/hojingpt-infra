@@ -44,11 +44,12 @@ resource "azurerm_network_interface" "main" {
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
-  name                  = "vm-${var.name}-bastion-001"
-  location              = var.location
-  resource_group_name   = var.resource_group_name
-  network_interface_ids = [azurerm_network_interface.main.id]
-  size                  = "Standard_B1s"
+  name                       = "vm-${var.name}-bastion-001"
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  network_interface_ids      = [azurerm_network_interface.main.id]
+  size                       = "Standard_B1s"
+  encryption_at_host_enabled = true
 
   os_disk {
     caching              = "ReadWrite"
@@ -84,6 +85,16 @@ resource "azurerm_virtual_machine_extension" "sshlogin" {
   type                       = "AADSSHLoginForLinux"
   type_handler_version       = "1.0"
   auto_upgrade_minor_version = true
+}
+
+resource "azurerm_virtual_machine_extension" "monitor_agent" {
+  name                       = "AzureMonitorAgent"
+  virtual_machine_id         = azurerm_linux_virtual_machine.main.id
+  publisher                  = "Microsoft.Azure.Monitor"
+  type                       = "AzureMonitorLinuxAgent"
+  type_handler_version       = "1.0"
+  auto_upgrade_minor_version = true
+  automatic_upgrade_enabled  = true
 }
 
 resource "azurerm_monitor_diagnostic_setting" "bastion" {
