@@ -53,7 +53,7 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
   host_name                      = data.azurerm_container_app.app.ingress.0.fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = null
+  origin_host_header             = data.azurerm_container_app.app.ingress.0.fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
@@ -109,6 +109,9 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
   sku_name            = var.sku_name
   enabled             = true
   mode                = "Detection"
+
+  custom_block_response_body        = "QmxvY2tlZCBieSBXQUY=" # "Blocked by WAF"
+  custom_block_response_status_code = 403
 
   managed_rule {
     action  = "Log"
