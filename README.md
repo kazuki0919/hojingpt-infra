@@ -80,6 +80,9 @@ The following resources are partially configured manually.
    ```bash
    az account list-locations -o table
    ```
+- [Azure Bastion](https://docs.google.com/document/d/1daoM0lFzi9ieJJr2nSPPZnY1SKvXmyTAb7t5YUEU5MY/edit)
+- [Azure OpenAI RateLimit-1](https://givery.slack.com/archives/C04TPKW8J5A/p1684717457424859)
+- [Azure OpenAI RateLimit-2](https://givery.slack.com/archives/C04U24W5EKU/p1685596618501169)
 
 # Bastion
 
