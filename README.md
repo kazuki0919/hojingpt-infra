@@ -49,6 +49,8 @@
 
     # Create blob container
     az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME
+
+    az storage container create --name $CONTAINER_NAME-aoai --account-name $STORAGE_ACCOUNT_NAME
     ```
 
 # CI/CD
