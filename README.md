@@ -135,6 +135,10 @@ az network bastion tunnel --name bastion-hojingpt-stage-001 \
   --resource-group rg-hojingpt-stage --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
   --resource-port 22 --port 5022
 
+az network bastion tunnel --name bastion-hojingpt-prod-001 \
+  --resource-group rg-hojingpt-prod --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-prod/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-prod-bastion-001 \
+  --resource-port 22 --port 5022
+
 # 2. then, connect to localhost:5022
 ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem -p 5022 azureuser@127.0.0.1
 ```

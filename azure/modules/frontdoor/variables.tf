@@ -33,7 +33,7 @@ variable "sku_name" {
 
 variable "response_timeout_seconds" {
   type    = number
-  default = 60
+  default = 240
 }
 
 variable "diagnostics" {
