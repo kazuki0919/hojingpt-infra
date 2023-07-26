@@ -13,6 +13,7 @@
     ```bash
     # login
     az login
+    # if failed please try: az login --debug
 
     # list subscriptions
     az account list --output table
