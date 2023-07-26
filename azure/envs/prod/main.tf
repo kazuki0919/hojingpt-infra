@@ -17,7 +17,7 @@ locals {
   domains = [
     "hojingpt.com",
     "azure.hojingpt.com",
-    # "hojingai.com",
+    "hojingai.com",
     # "azure.hojingai.com",
   ]
 
