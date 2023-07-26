@@ -225,3 +225,25 @@ az containerapp up \
   --query properties.configuration.ingress.fqdn \
   --env-vars "PORT=80" "prod=1"
 ```
+
+# Logging
+
+### Application Log Query Sample
+
+```sh
+ContainerAppConsoleLogs_CL
+| where TimeGenerated >= now(-5m)
+| where Log_s has_cs "ERROR"
+| project TimeGenerated, RevisionName_s, Log_s
+```
+
+### Access Log Query Sample
+
+```sh
+AzureDiagnostics
+| where TimeGenerated >= now(-1h)
+| where Category == "FrontDoorAccessLog"
+| where ResourceGroup == "RG-HOJINGPT-PROD"
+| project TimeGenerated, httpMethod_s, requestUri_s, httpStatusCode_d, timeTaken_s, clientIp_s, clientPort_s, endpoint_s, originUrl_s, originIp_s
+| order by TimeGenerated desc
+```
