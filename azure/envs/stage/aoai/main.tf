@@ -12,30 +12,57 @@ provider "azurerm" {
 }
 
 locals {
-  env = "stage"
+  env  = "stage"
+  name = "hojingpt-${local.env}"
 
   tags = {
     service = "hojingpt"
     env     = local.env
   }
 
+  allow_ips = [
+    "222.230.117.190", # yusuke.yoda's home IP. To be removed at a later.
+    "150.249.202.236", # givery's office 8F
+    "150.249.192.10",  # givery's office 7F
+  ]
+
+  deployments = {
+    model0001 = {
+      model_name     = "gpt-35-turbo"
+      model_version  = "0613"
+      # scale_capacity = 120
+    }
+    model0002 = {
+      model_name     = "gpt-35-turbo-16k"
+      model_version  = "0613"
+      # scale_capacity = 240
+    }
+    model0003 = {
+      model_name     = "gpt-4"
+      model_version  = "0613"
+      # scale_capacity = 10
+    }
+    model0004 = {
+      model_name     = "gpt-4-32k"
+      model_version  = "0613"
+      # scale_capacity = 30
+    }
+  }
+
+  # network.address_space is required if creating a new VNET. Omit if referencing an existing VNET.
   cognitive_services = {
     "001" = {
       location = "eastus"
       network = {
+        vnet_name     = "vnet-${local.name}-cog-001"
         address_space = ["10.200.0.0/16"]
         subnets = {
-          "subnet-hojingpt-${local.env}-001" = {
-            cidrs = ["10.0.0.0/24"]
+          "subnet-${local.name}-001" = {
+            cidrs = ["10.200.0.0/20"]
           }
         }
       }
-      deployments = {
-        gpt35turbo0301001 = {
-          model_name    = "gpt-35-turbo"
-          model_version = "0301"
-        }
-      }
+      deployments = local.deployments
     }
     # "002" = {
     #   location = "francecentral"
@@ -53,16 +80,16 @@ locals {
 }
 
 data "azurerm_resource_group" "main" {
-  name = "rg-hojingpt-${local.env}"
+  name = "rg-${local.name}"
 }
 
 data "azurerm_virtual_network" "main" {
-  name                = "vnet-hojingpt-${local.env}-001"
+  name                = "vnet-${local.name}-001"
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
 data "azurerm_subnet" "main" {
-  name                 = "snet-hojingpt-${local.env}-001"
+  name                 = "snet-${local.name}-001"
   virtual_network_name = data.azurerm_virtual_network.main.name
   resource_group_name  = data.azurerm_resource_group.main.name
 }
@@ -78,44 +105,40 @@ module "network" {
   source              = "../../../modules/openai/network"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = each.value.location
-  name                = "hojingpt-${local.env}"
-  vnet_name           = lookup(each.value.network, "name", null)
+  vnet_name           = each.value.network.vnet_name
   address_space       = lookup(each.value.network, "address_space", [])
   subnets             = each.value.network.subnets
   tags                = local.tags
 }
 
-# module "cognitive_service" {
-#   for_each            = local.cognitive_services
-#   source              = "../../../modules/openai/cognitive"
-#   resource_group_name = data.azurerm_resource_group.main.name
-#   location            = each.value.location
-#   name                = "hojingpt-${local.env}"
-#   name_suffix         = each.key
-#   deployments         = each.value.deployments
+module "cognitive_service" {
+  for_each            = local.cognitive_services
+  source              = "../../../modules/openai/cognitive"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = each.value.location
+  name                = local.name
+  name_suffix         = each.key
+  deployments         = each.value.deployments
 
-#   network_acls = {
-#     default_action = "Allow"
-#     ip_rules = [
-#       "150.249.202.236/32", # givery's office 8F
-#       "150.249.192.10/32",  # givery's office 7F
-#     ]
-#     virtual_network_rules = {
-#       subnet_id                            = module.network.
-#       ignore_missing_vnet_service_endpoint = true
-#     }
-#   }
+  network_acls = {
+    ip_rules = local.allow_ips
+    virtual_network_rules = [
+      {
+        subnet_id = module.network[each.key].subnets["subnet-${local.name}-001"].id
+      }
+    ]
+  }
 
-#   private_endpoint = {
-#     id        = data.azurerm_virtual_network.main.id
-#     subnet_id = data.azurerm_subnet.main.id
-#     location  = data.azurerm_virtual_network.main.location
-#   }
+  private_endpoint = {
+    id        = data.azurerm_virtual_network.main.id
+    subnet_id = data.azurerm_subnet.main.id
+    location  = data.azurerm_virtual_network.main.location
 
-#   private_dns_zone = {
-#     name = azurerm_private_dns_zone.main.name
-#     id   = azurerm_private_dns_zone.main.id
-#   }
+    dns_zone = {
+      name = azurerm_private_dns_zone.main.name
+      id   = azurerm_private_dns_zone.main.id
+    }
+  }
 
-#   tags = local.tags
-# }
+  tags = local.tags
+}

@@ -2,32 +2,34 @@
 # Cognitive Service
 #########################################################################
 resource "azurerm_cognitive_account" "openai_private" {
-  name                               = "oai-${var.name}-private-${var.name_suffix}"
-  custom_subdomain_name              = "oai-${var.name}-private-${var.name_suffix}"
+  name                               = "cog-${var.name}-private-${var.name_suffix}"
+  custom_subdomain_name              = "cog-${var.name}-private-${var.name_suffix}"
   resource_group_name                = var.resource_group_name
   location                           = var.location
   kind                               = "OpenAI"
   sku_name                           = "S0"
-
   dynamic_throttling_enabled         = false
   fqdns                              = []
   local_auth_enabled                 = true
   outbound_network_access_restricted = false
-  public_network_access_enabled      = false
+  public_network_access_enabled      = true
   tags                               = var.tags
 
-  network_acls {
-    default_action = "Allow"
-    ip_rules       = []
-  }
+  dynamic "network_acls" {
+    for_each = var.network_acls == null ? [] : [true]
+    content {
+      default_action = var.network_acls.default_action
+      ip_rules       = var.network_acls.ip_rules
 
-  # dynamic "storage" {
-  #   for_each = var.storage
-  #   content {
-  #     storage_account_id = storage.value.storage_account_id
-  #     identity_client_id = storage.value.identity_client_id
-  #   }
-  # }
+      dynamic "virtual_network_rules" {
+        for_each = var.network_acls.virtual_network_rules
+        content {
+          subnet_id                            = virtual_network_rules.value.subnet_id
+          ignore_missing_vnet_service_endpoint = virtual_network_rules.value.ignore_missing_vnet_service_endpoint
+        }
+      }
+    }
+  }
 }
 
 resource "azurerm_cognitive_deployment" "openai_private" {
@@ -43,7 +45,8 @@ resource "azurerm_cognitive_deployment" "openai_private" {
   }
 
   scale {
-    type = each.value.scale_type
+    type     = each.value.scale_type
+    capacity = each.value.scale_capacity
   }
 }
 
@@ -51,7 +54,8 @@ resource "azurerm_cognitive_deployment" "openai_private" {
 # Private Endpoint
 #########################################################################
 resource "azurerm_private_endpoint" "main" {
-  name                = "pep-${var.name}-oai-${var.name_suffix}"
+  count               = var.private_endpoint == null ? 0 : 1
+  name                = "pep-${var.name}-cog-${var.name_suffix}"
   location            = var.private_endpoint.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint.subnet_id
@@ -66,13 +70,14 @@ resource "azurerm_private_endpoint" "main" {
 
   private_dns_zone_group {
     name                 = "default"
-    private_dns_zone_ids = [var.private_dns_zone.id]
+    private_dns_zone_ids = [var.private_endpoint.dns_zone.id]
   }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
-  name                  = "link-${var.name}-oai-${var.name_suffix}"
-  private_dns_zone_name = var.private_dns_zone.name
+  count                 = var.private_endpoint == null ? 0 : 1
+  name                  = "link-${var.name}-cog-${var.name_suffix}"
+  private_dns_zone_name = var.private_endpoint.dns_zone.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = var.private_endpoint.id
   registration_enabled  = false

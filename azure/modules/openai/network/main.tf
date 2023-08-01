@@ -1,7 +1,3 @@
-variable "name" {
-  type = string
-}
-
 variable "resource_group_name" {
   type = string
 }
@@ -29,9 +25,13 @@ variable "tags" {
   default = {}
 }
 
+locals {
+  is_vnet_creation = length(var.address_space) > 0 ? true : false
+}
+
 resource "azurerm_virtual_network" "main" {
-  count               = var.vnet_name == null ? 1 : 0
-  name                = "vnet-${var.name}-001"
+  count               = local.is_vnet_creation ? 1 : 0
+  name                = var.vnet_name
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = var.address_space
@@ -42,7 +42,7 @@ resource "azurerm_subnet" "main" {
   for_each             = var.subnets
   name                 = each.key
   resource_group_name  = var.resource_group_name
-  virtual_network_name = var.vnet_name == null ? one(azurerm_virtual_network.main).name : var.vnet_name
+  virtual_network_name = local.is_vnet_creation ? one(azurerm_virtual_network.main).name : var.vnet_name
   address_prefixes     = each.value.cidrs
 
   service_endpoints = [
@@ -54,7 +54,7 @@ resource "azurerm_subnet" "main" {
 }
 
 output "vnet_name" {
-  value = var.vnet_name == null ? one(azurerm_virtual_network.main).name : var.vnet_name
+  value = var.vnet_name
 }
 
 output "subnets" {
