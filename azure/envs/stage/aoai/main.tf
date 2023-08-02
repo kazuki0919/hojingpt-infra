@@ -26,32 +26,6 @@ locals {
     "150.249.192.10",  # givery's office 7F
   ]
 
-  gpt35 = {
-    model0001 = {
-      model_name     = "gpt-35-turbo"
-      model_version  = "0613"
-      # scale_capacity = 120
-    }
-    model0002 = {
-      model_name     = "gpt-35-turbo-16k"
-      model_version  = "0613"
-      # scale_capacity = 240
-    }
-  }
-
-  gpt4 = {
-    model0003 = {
-      model_name     = "gpt-4"
-      model_version  = "0613"
-      # scale_capacity = 10
-    }
-    model0004 = {
-      model_name     = "gpt-4-32k"
-      model_version  = "0613"
-      # scale_capacity = 30
-    }
-  }
-
   # network.address_space is required if creating a new VNET. Omit if referencing an existing VNET.
   cognitive_services = {
     "001" = {
@@ -65,7 +39,28 @@ locals {
           }
         }
       }
-      deployments = merge(local.gpt35, local.gpt4)
+      deployments = {
+        model0001 = {
+          model_name     = "gpt-35-turbo"
+          model_version  = "0613"
+          scale_capacity = 120
+        }
+        model0002 = {
+          model_name     = "gpt-35-turbo-16k"
+          model_version  = "0613"
+          scale_capacity = 240
+        }
+        model0003 = {
+          model_name     = "gpt-4"
+          model_version  = "0613"
+          scale_capacity = 10
+        }
+        model0004 = {
+          model_name     = "gpt-4-32k"
+          model_version  = "0613"
+          scale_capacity = 30
+        }
+      }
     }
     "002" = {
       location = "francecentral"
@@ -78,7 +73,28 @@ locals {
           }
         }
       }
-      deployments = merge(local.gpt35, local.gpt4)
+      deployments = {
+        model0001 = {
+          model_name     = "gpt-35-turbo"
+          model_version  = "0613"
+          scale_capacity = 240
+        }
+        model0002 = {
+          model_name     = "gpt-35-turbo-16k"
+          model_version  = "0613"
+          scale_capacity = 240
+        }
+        model0003 = {
+          model_name     = "gpt-4"
+          model_version  = "0613"
+          scale_capacity = 10
+        }
+        model0004 = {
+          model_name     = "gpt-4-32k"
+          model_version  = "0613"
+          scale_capacity = 30
+        }
+      }
     }
     "003" = {
       location = "uksouth"
@@ -91,7 +107,18 @@ locals {
           }
         }
       }
-      deployments = local.gpt35
+      deployments = {
+        model0001 = {
+          model_name     = "gpt-35-turbo"
+          model_version  = "0613"
+          scale_capacity = 240
+        }
+        model0002 = {
+          model_name     = "gpt-35-turbo-16k"
+          model_version  = "0613"
+          scale_capacity = 240
+        }
+      }
     }
   }
 }

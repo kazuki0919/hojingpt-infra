@@ -48,6 +48,10 @@ resource "azurerm_cognitive_deployment" "openai_private" {
     type     = each.value.scale_type
     capacity = each.value.scale_capacity
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 #########################################################################
