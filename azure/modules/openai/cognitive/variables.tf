@@ -34,14 +34,9 @@ variable "network_acls" {
 
 variable "private_endpoint" {
   type = object({
-    id        = string
-    subnet_id = string
-    location  = string
-
-    dns_zone = object({
-      name = string
-      id   = string
-    })
+    subnet_id   = string
+    location    = string
+    dns_zone_id = string
   })
   default = null
 }

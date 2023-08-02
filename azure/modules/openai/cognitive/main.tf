@@ -70,18 +70,8 @@ resource "azurerm_private_endpoint" "main" {
 
   private_dns_zone_group {
     name                 = "default"
-    private_dns_zone_ids = [var.private_endpoint.dns_zone.id]
+    private_dns_zone_ids = [var.private_endpoint.dns_zone_id]
   }
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "main" {
-  count                 = var.private_endpoint == null ? 0 : 1
-  name                  = "link-${var.name}-cog-${var.name_suffix}"
-  private_dns_zone_name = var.private_endpoint.dns_zone.name
-  resource_group_name   = var.resource_group_name
-  virtual_network_id    = var.private_endpoint.id
-  registration_enabled  = false
-  tags                  = var.tags
 }
 
 #########################################################################

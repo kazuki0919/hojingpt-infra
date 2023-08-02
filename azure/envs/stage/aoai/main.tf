@@ -26,7 +26,7 @@ locals {
     "150.249.192.10",  # givery's office 7F
   ]
 
-  deployments = {
+  gpt35 = {
     model0001 = {
       model_name     = "gpt-35-turbo"
       model_version  = "0613"
@@ -37,6 +37,9 @@ locals {
       model_version  = "0613"
       # scale_capacity = 240
     }
+  }
+
+  gpt4 = {
     model0003 = {
       model_name     = "gpt-4"
       model_version  = "0613"
@@ -62,20 +65,34 @@ locals {
           }
         }
       }
-      deployments = local.deployments
+      deployments = merge(local.gpt35, local.gpt4)
     }
-    # "002" = {
-    #   location = "francecentral"
-    # }
-    # "003" = {
-    #   location = "uksouth"
-    # }
-    # "004" = {
-    #   location = "westeurope"
-    # }
-    # "005" = {
-    #   location = "japaneast"
-    # }
+    "002" = {
+      location = "francecentral"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-002"
+        address_space = ["10.201.0.0/16"]
+        subnets = {
+          "subnet-${local.name}-001" = {
+            cidrs = ["10.201.0.0/20"]
+          }
+        }
+      }
+      deployments = merge(local.gpt35, local.gpt4)
+    }
+    "003" = {
+      location = "uksouth"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-003"
+        address_space = ["10.202.0.0/16"]
+        subnets = {
+          "subnet-${local.name}-001" = {
+            cidrs = ["10.202.0.0/20"]
+          }
+        }
+      }
+      deployments = local.gpt35
+    }
   }
 }
 
@@ -98,6 +115,15 @@ resource "azurerm_private_dns_zone" "main" {
   name                = "privatelink.openai.azure.com"
   resource_group_name = data.azurerm_resource_group.main.name
   tags                = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "main" {
+  name                  = "link-${local.name}-cog-001"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  virtual_network_id    = data.azurerm_virtual_network.main.id
+  private_dns_zone_name = azurerm_private_dns_zone.main.name
+  registration_enabled  = false
+  tags                  = local.tags
 }
 
 module "network" {
@@ -130,14 +156,9 @@ module "cognitive_service" {
   }
 
   private_endpoint = {
-    id        = data.azurerm_virtual_network.main.id
-    subnet_id = data.azurerm_subnet.main.id
-    location  = data.azurerm_virtual_network.main.location
-
-    dns_zone = {
-      name = azurerm_private_dns_zone.main.name
-      id   = azurerm_private_dns_zone.main.id
-    }
+    subnet_id   = data.azurerm_subnet.main.id
+    location    = data.azurerm_virtual_network.main.location
+    dns_zone_id = azurerm_private_dns_zone.main.id
   }
 
   tags = local.tags
