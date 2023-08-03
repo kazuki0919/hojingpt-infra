@@ -1,5 +1,5 @@
 # hojingpt-infra
-法人GPT's infrastructure managed by terraform.
+法人GAI's infrastructure managed by terraform.
 
 # System Design Diagram
 - https://drive.google.com/file/d/1nreqrtd-bwEGPyTbRpOivBrN-RqbMAwX/view?usp=sharing
@@ -50,11 +50,9 @@
 
     # Create blob container
     az storage container create --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME
+
+    az storage container create --name $CONTAINER_NAME-aoai --account-name $STORAGE_ACCOUNT_NAME
     ```
-
-# CI/CD
-
-Unfortunately, CI/CD has not yet been set up. So, you need to use terraform locally.
 
 # Exceptional manual managed resources
 
@@ -64,26 +62,15 @@ The following resources are manually configured.
 - SSH Key
 - Container Apps
     - Approval of private endpoint connections
-    - Custom domain settings
     - ID
     - Scale and Replica
+    - Secret
 - Logic Apps
 
 The following resources are partially configured manually.
 
 ### Azure Strage
 - sthojingptterraform{dev|stage|prod}: Used for tfstate storage.
-
-# NOTE
-- [Azure Resource Naming Conventions](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)
-- List of [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/locations/)
-
-   ```bash
-   az account list-locations -o table
-   ```
-- [Azure Bastion](https://docs.google.com/document/d/1daoM0lFzi9ieJJr2nSPPZnY1SKvXmyTAb7t5YUEU5MY/edit)
-- [Azure OpenAI RateLimit-1](https://givery.slack.com/archives/C04TPKW8J5A/p1684717457424859)
-- [Azure OpenAI RateLimit-2](https://givery.slack.com/archives/C04U24W5EKU/p1685596618501169)
 
 # Bastion
 
@@ -104,20 +91,10 @@ az keyvault secret set --vault-name kv-hojingpt-${ENV} --name ssh-hojingpt-${ENV
 
 ### How to connect
 
-In the future, we plan to block access from IPs other than the Givery office IP. In this case, an office VPN will be required.
-
 ```bash
 az login
-az account list
-az account set --subscription "2b7c69c8-29da-4322-a5fa-baae7454f6ef"
-
-# Azure Bastion (SSH Key)
-az network bastion ssh --name bastion-hojingpt-stage-001 \
-  --resource-group rg-hojingpt-stage \
-  --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
-  --auth-type ssh-key \
-  --username azureuser \
-  --ssh-key /Users/yyoda/.ssh/ssh-hojingpt-stage-001.pem
+az account list --output table
+az account set --subscription "od-001-hojingpt"
 
 # Azure bastion (Azure Active Directory)
 az network bastion ssh --name bastion-hojingpt-stage-001 \
@@ -247,3 +224,16 @@ AzureDiagnostics
 | project TimeGenerated, httpMethod_s, requestUri_s, httpStatusCode_d, timeTaken_s, clientIp_s, clientPort_s, endpoint_s, originUrl_s, originIp_s
 | order by TimeGenerated desc
 ```
+
+# NOTE
+- [Azure Resource Naming Conventions](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)
+- List of [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/locations/)
+- [About Azure OpenAI settings](https://docs.google.com/spreadsheets/d/1NcfCNGKDNJ5AoW8NXx4ca9LCQjVN5HpYuNhrFey1DJ8/edit#gid=144614746)
+
+   ```bash
+   az account list-locations -o table
+   ```
+- [Azure Bastion](https://docs.google.com/document/d/1daoM0lFzi9ieJJr2nSPPZnY1SKvXmyTAb7t5YUEU5MY/edit)
+- [Azure OpenAI RateLimit-1](https://givery.slack.com/archives/C04TPKW8J5A/p1684717457424859)
+- [Azure OpenAI RateLimit-2](https://givery.slack.com/archives/C04U24W5EKU/p1685596618501169)
+
