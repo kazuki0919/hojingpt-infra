@@ -51,3 +51,11 @@ variable "deployments" {
     scale_capacity  = optional(number, 1)
   }))
 }
+
+variable "diagnostics" {
+  type = object({
+    log_analytics_workspace_id = string
+    storage_account_id         = string
+  })
+  default = null
+}

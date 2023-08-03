@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-hojingpt-stage"
-    storage_account_name = "sthojingptterraformstage"
+    resource_group_name  = "rg-hojingpt-prod"
+    storage_account_name = "sthojingptterraformprod"
     container_name       = "tfstate-aoai"
     key                  = "terraform.tfstate"
   }
@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 locals {
-  env  = "stage"
+  env  = "prod"
   name = "hojingpt-${local.env}"
 
   tags = {
