@@ -24,11 +24,11 @@
 
 1. Run
 
-  ```bash
-  cd azure/envs/dev
-  tfenv install && terraform init
-  terraform plan
-  ```
+    ```bash
+    cd azure/envs/dev
+    tfenv install && terraform init
+    terraform plan
+    ```
 
 # How to start new environment creation
 
@@ -69,7 +69,7 @@ The following resources are manually configured.
 
 The following resources are partially configured manually.
 
-### Azure Strage
+### Azure Storage
 - sthojingptterraform{dev|stage|prod}: Used for tfstate storage.
 
 # Bastion
@@ -96,7 +96,7 @@ az login
 az account list --output table
 az account set --subscription "od-001-hojingpt"
 
-# Azure bastion (Azure Active Directory)
+# Connect by Azure Bastion Service with Azure AD
 az network bastion ssh --name bastion-hojingpt-stage-001 \
   --resource-group rg-hojingpt-stage \
   --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
@@ -107,7 +107,7 @@ az network bastion ssh --name bastion-hojingpt-prod-001 \
   --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-prod/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-prod-bastion-001 \
   --auth-type AAD
 
-# SSH
+# Connect by SSH tunnel
 # 1. tunnel
 az network bastion tunnel --name bastion-hojingpt-stage-001 \
   --resource-group rg-hojingpt-stage --target-resource-id /subscriptions/2b7c69c8-29da-4322-a5fa-baae7454f6ef/resourceGroups/rg-hojingpt-stage/providers/Microsoft.Compute/virtualMachines/vm-hojingpt-stage-bastion-001 \
@@ -118,7 +118,12 @@ az network bastion tunnel --name bastion-hojingpt-prod-001 \
   --resource-port 22 --port 5022
 
 # 2. then, connect to localhost:5022
-ssh -i ~/.ssh/ssh-hojingpt-stage-001.pem -p 5022 azureuser@127.0.0.1
+ssh -i ~/.ssh/hojingpt-yoda.pem -p 5022 azureuser@127.0.0.1
+
+# 3. To add a new user to be allowed to connect via SSH tunneling, add the public key to /home/azureuser/.ssh/authorized_keys. This setting is not necessary for 'az network bastion ssh', but is required if you want to use SSH or SCP with 'az network bastion tunnel'
+sudo -i
+su azureuser
+vim ~/.ssh/authorized_keys
 ```
 
 # MySQL
