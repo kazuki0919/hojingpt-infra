@@ -15,7 +15,7 @@ locals {
   env = "stage"
 
   domains = [
-    # "staging.hojingpt.com",
+    "staging.hojingpt.com",
     "staging-azure.hojingpt.com",
     # "staging.hojingai.com",
     # "staging-azure.hojingai.com",
