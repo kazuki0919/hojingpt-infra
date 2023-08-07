@@ -12,31 +12,31 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-resource "google_vpc_access_connector" "default" {
-  name           = "${var.name}-default${var.name_suffix}"
-  region         = var.region
-  ip_cidr_range  = "10.8.0.0/28"
-  network        = google_compute_network.default.name
-  machine_type   = "e2-micro"
-  min_instances  = 2
-  max_instances  = 10
-  max_throughput = 1000
-}
+# resource "google_vpc_access_connector" "default" {
+#   name           = "${var.name}-default${var.name_suffix}"
+#   region         = var.region
+#   ip_cidr_range  = "10.8.0.0/28"
+#   network        = google_compute_network.default.name
+#   machine_type   = "e2-micro"
+#   min_instances  = 2
+#   max_instances  = 10
+#   max_throughput = 1000
+# }
 
-resource "google_compute_global_address" "default" {
-  name          = "${var.name}-default${var.name_suffix}"
-  address_type  = "INTERNAL"
-  purpose       = "VPC_PEERING"
-  network       = google_compute_network.default.id
-  address       = "10.200.0.0"
-  prefix_length = 16
-}
+# resource "google_compute_global_address" "default" {
+#   name          = "${var.name}-default${var.name_suffix}"
+#   address_type  = "INTERNAL"
+#   purpose       = "VPC_PEERING"
+#   network       = google_compute_network.default.id
+#   address       = "10.200.0.0"
+#   prefix_length = 16
+# }
 
-resource "google_service_networking_connection" "default" {
-  network                 = google_compute_network.default.id
-  service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.default.name]
-}
+# resource "google_service_networking_connection" "default" {
+#   network                 = google_compute_network.default.id
+#   service                 = "servicenetworking.googleapis.com"
+#   reserved_peering_ranges = [google_compute_global_address.default.name]
+# }
 
 # see: https://zenn.dev/btc4043/articles/5d9859d3226f7d
 
