@@ -236,9 +236,9 @@ module "monitoring" {
     "${module.redis.main.name}" = module.redis.main.id
   }
 
-  # webtest = {
-  #   "${module.frontdoor.main.name}" = "https://hojingpt.com/sys/health"
-  # }
+  webtest = {
+    "${module.frontdoor.main.name}" = "https://hojingpt.com/sys/health"
+  }
 
   logicapp_metrics = {
     name         = "la-hojingpt-${local.env}-metrics-alert"
