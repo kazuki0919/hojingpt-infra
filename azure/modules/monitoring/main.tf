@@ -113,16 +113,17 @@ resource "azurerm_monitor_metric_alert" "containerapp_mem" {
 }
 
 resource "azurerm_monitor_metric_alert" "containerapp_5xx" {
-  name                = "alert-ca-${var.name}-5xx"
-  description         = "[ERROR] ContainerApps 5xx detected"
+  for_each            = { warn = 1, error = 100 }
+  name                = "alert-ca-${var.name}-5xx-${each.key}"
+  description         = "[${upper(each.key)}] ContainerApps 5xx detected"
   resource_group_name = var.resource_group_name
   scopes              = [for app in data.azurerm_container_app.main : app.id]
-  severity            = 1
+  severity            = each.key == "error" ? 1 : 2
   frequency           = "PT5M"
   window_size         = "PT15M"
 
   criteria {
-    threshold        = 1
+    threshold        = each.value
     metric_namespace = "microsoft.app/containerapps"
     metric_name      = "Requests"
     operator         = "GreaterThan"
@@ -145,14 +146,15 @@ resource "azurerm_monitor_metric_alert" "containerapp_5xx" {
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" {
-  name                    = "alert-ca-${var.name}-errors"
-  description             = "[ERROR] ContainerApps error log detected"
+  for_each                = { warn = 1, error = 100 }
+  name                    = "alert-ca-${var.name}-logs-${each.key}"
+  description             = "[${upper(each.key)}] ContainerApps error log detected"
   resource_group_name     = var.resource_group_name
   location                = var.location
   scopes                  = [var.diagnostics.log_analytics_workspace_id]
   evaluation_frequency    = "PT5M"
   window_duration         = "PT15M"
-  severity                = 1
+  severity                = each.key == "error" ? 1 : 2
   auto_mitigation_enabled = true
   target_resource_types   = ["Microsoft.OperationalInsights/workspaces"]
 
@@ -165,7 +167,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" 
     EOT
 
     time_aggregation_method = "Count"
-    threshold               = 1
+    threshold               = each.value
     operator                = "GreaterThanOrEqual"
 
     dimension {
