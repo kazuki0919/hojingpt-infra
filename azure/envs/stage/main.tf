@@ -22,7 +22,6 @@ locals {
   ]
 
   allow_ips = [
-    "126.208.101.129/32", # takahito.yamatoya's home IP. To be removed at a later.
     "222.230.117.190/32", # yusuke.yoda's home IP. To be removed at a later.
     "150.249.202.236/32", # givery's office 8F
     "150.249.192.10/32",  # givery's office 7F
@@ -30,7 +29,6 @@ locals {
 
   users = {
     "ad94dd20-bb7f-46e6-a326-73925eef35ab" = "yusuke.yoda@givery.onmicrosoft.com"
-    "7f9d0fd2-8d30-48d4-86fc-9cb0ddcb5e1f" = "takahito.yamatoya@givery.onmicrosoft.com"
   }
 
   tags = {
