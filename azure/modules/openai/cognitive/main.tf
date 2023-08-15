@@ -51,6 +51,7 @@ resource "azurerm_cognitive_deployment" "openai_private" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes        = [scale.0.capacity]
   }
 }
 
