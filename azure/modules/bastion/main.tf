@@ -50,7 +50,10 @@ resource "azurerm_linux_virtual_machine" "main" {
   network_interface_ids      = [azurerm_network_interface.main.id]
   size                       = "Standard_B1s"
   encryption_at_host_enabled = true
-  patch_assessment_mode      = "AutomaticByPlatform"
+
+  patch_assessment_mode = "AutomaticByPlatform"
+  patch_mode            = "AutomaticByPlatform"
+  reboot_setting        = "IfRequired"
 
   os_disk {
     caching              = "ReadWrite"
