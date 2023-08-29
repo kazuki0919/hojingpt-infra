@@ -10,9 +10,10 @@ variable "name" {
   type = string
 }
 
-variable "container_app" {
+variable "container" {
   type = object({
-    name            = string
+    app_name        = string
+    aoai_name       = string
     subnet_id       = string
     lb_frontend_ids = list(string)
   })

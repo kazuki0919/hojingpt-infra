@@ -199,8 +199,9 @@ module "frontdoor" {
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}-jpeast"
 
-  container_app = {
-    name            = "hojingpt-${local.env}-001"
+  container = {
+    app_name        = "hojingpt-${local.env}-001"
+    aoai_name       = "hojingpt-${local.env}-002"
     subnet_id       = module.network.subnet_app.id
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
@@ -224,6 +225,7 @@ module "monitoring" {
 
   container_apps = {
     "ca-hojingpt-${local.env}-001" = {}
+    "ca-hojingpt-${local.env}-002" = {}
   }
 
   mysql = {
@@ -235,7 +237,7 @@ module "monitoring" {
   }
 
   webtest = {
-    "${module.frontdoor.main.name}" = "https://hojingpt.com/sys/health"
+    "default" = "https://hojingpt.com/sys/health"
   }
 
   logicapp_metrics = {

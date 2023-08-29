@@ -112,18 +112,18 @@ resource "azurerm_monitor_metric_alert" "containerapp_mem" {
   }
 }
 
-resource "azurerm_monitor_metric_alert" "containerapp_5xx" {
-  for_each            = { warn = 1, error = 100 }
-  name                = "alert-ca-${var.name}-5xx-${each.key}"
-  description         = "[${upper(each.key)}] ContainerApps 5xx detected"
+resource "azurerm_monitor_metric_alert" "containerapp_5xx_warn" {
+  for_each            = var.container_apps
+  name                = "alert-${each.key}-5xx-warn"
+  description         = "[WARN] ContainerApps 5xx detected"
   resource_group_name = var.resource_group_name
-  scopes              = [for app in data.azurerm_container_app.main : app.id]
-  severity            = each.key == "error" ? 1 : 2
+  scopes              = [data.azurerm_container_app.main[each.key].id]
+  severity            = 2
   frequency           = "PT5M"
   window_size         = "PT15M"
 
   criteria {
-    threshold        = each.value
+    threshold        = 1
     metric_namespace = "microsoft.app/containerapps"
     metric_name      = "Requests"
     operator         = "GreaterThan"
@@ -145,16 +145,49 @@ resource "azurerm_monitor_metric_alert" "containerapp_5xx" {
   }
 }
 
-resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" {
-  for_each                = { warn = 1, error = 100 }
-  name                    = "alert-ca-${var.name}-logs-${each.key}"
-  description             = "[${upper(each.key)}] ContainerApps error log detected"
+resource "azurerm_monitor_metric_alert" "containerapp_5xx_error" {
+  for_each            = var.container_apps
+  name                = "alert-${each.key}-5xx-error"
+  description         = "[ERROR] ContainerApps 5xx detected"
+  resource_group_name = var.resource_group_name
+  scopes              = [data.azurerm_container_app.main[each.key].id]
+  severity            = 1
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  criteria {
+    threshold        = 100
+    metric_namespace = "microsoft.app/containerapps"
+    metric_name      = "Requests"
+    operator         = "GreaterThan"
+    aggregation      = "Total"
+
+    dimension {
+      name     = "statusCodeCategory"
+      operator = "Include"
+      values   = ["5xx"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.metrics.id
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_log_warn" {
+  for_each                = var.container_apps
+  name                    = "alert-${each.key}-logs-warn"
+  description             = "[WARN] ContainerApps error log detected"
   resource_group_name     = var.resource_group_name
   location                = var.location
   scopes                  = [var.diagnostics.log_analytics_workspace_id]
   evaluation_frequency    = "PT5M"
   window_duration         = "PT15M"
-  severity                = each.key == "error" ? 1 : 2
+  severity                = 2
   auto_mitigation_enabled = true
   target_resource_types   = ["Microsoft.OperationalInsights/workspaces"]
 
@@ -163,11 +196,59 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_errors" 
       ContainerAppConsoleLogs_CL
       | where TimeGenerated >= now(-5m)
       | where Log_s has_cs "ERROR"
+      | where ContainerAppName_s == "${each.key}"
       | project TimeGenerated, RevisionName_s, Log_s
     EOT
 
     time_aggregation_method = "Count"
-    threshold               = each.value
+    threshold               = 1
+    operator                = "GreaterThanOrEqual"
+
+    dimension {
+      name     = "RevisionName_s"
+      operator = "Include"
+      values   = ["*"]
+    }
+
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 3
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.applogs.id]
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_log_error" {
+  for_each                = var.container_apps
+  name                    = "alert-${each.key}-logs-error"
+  description             = "[ERROR] ContainerApps error log detected"
+  resource_group_name     = var.resource_group_name
+  location                = var.location
+  scopes                  = [var.diagnostics.log_analytics_workspace_id]
+  evaluation_frequency    = "PT5M"
+  window_duration         = "PT15M"
+  severity                = 1
+  auto_mitigation_enabled = true
+  target_resource_types   = ["Microsoft.OperationalInsights/workspaces"]
+
+  criteria {
+    query = <<-EOT
+      ContainerAppConsoleLogs_CL
+      | where TimeGenerated >= now(-5m)
+      | where Log_s has_cs "ERROR"
+      | where ContainerAppName_s == "${each.key}"
+      | project TimeGenerated, RevisionName_s, Log_s
+    EOT
+
+    time_aggregation_method = "Count"
+    threshold               = 100
     operator                = "GreaterThanOrEqual"
 
     dimension {

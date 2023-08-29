@@ -1,18 +1,18 @@
 data "azurerm_container_app" "app" {
-  name                = "ca-${var.container_app.name}"
+  name                = "ca-${var.container.app_name}"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_private_link_service" "app" {
-  name                                        = "pl-${var.container_app.name}"
+  name                                        = "pl-${var.container.app_name}"
   location                                    = var.location
   resource_group_name                         = var.resource_group_name
-  load_balancer_frontend_ip_configuration_ids = var.container_app.lb_frontend_ids
+  load_balancer_frontend_ip_configuration_ids = var.container.lb_frontend_ids
 
   nat_ip_configuration {
-    name      = "snet-${var.container_app.name}-1"
+    name      = "snet-${var.container.app_name}-1"
     primary   = true
-    subnet_id = var.container_app.subnet_id
+    subnet_id = var.container.subnet_id
   }
 
   tags = var.tags
@@ -82,6 +82,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "main" {
   }
 }
 
+resource "azurerm_cdn_frontdoor_rule_set" "main" {
+  name                     = "DefaultRuleSet"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+}
+
 resource "azurerm_cdn_frontdoor_route" "main" {
   name                          = "fdr-${var.name}-001"
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.main.id
@@ -92,6 +97,10 @@ resource "azurerm_cdn_frontdoor_route" "main" {
 
   cdn_frontdoor_custom_domain_ids = [
     for domain in azurerm_cdn_frontdoor_custom_domain.main : domain.id
+  ]
+
+  cdn_frontdoor_rule_set_ids = [
+    azurerm_cdn_frontdoor_rule_set.main.id,
   ]
 
   supported_protocols    = ["Http", "Https"]
