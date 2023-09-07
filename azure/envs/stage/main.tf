@@ -102,6 +102,16 @@ module "bastion" {
   tags                = local.tags
 }
 
+module "batch" {
+  source              = "../../modules/batch"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "hojingpt-${local.env}"
+  ssh_key             = "ssh-hojingpt-${local.env}-001"
+  subnet_id           = module.network.subnet_app.id
+  tags                = local.tags
+}
+
 module "redis" {
   source              = "../../modules/cache/redis"
   resource_group_name = data.azurerm_resource_group.main.name
