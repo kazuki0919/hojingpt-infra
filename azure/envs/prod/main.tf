@@ -262,3 +262,11 @@ module "monitoring" {
 
   tags = local.tags
 }
+
+module "mail" {
+  source              = "../../modules/mail"
+  name                = "hojingpt-${local.env}"
+  resource_group_name = data.azurerm_resource_group.main.name
+  diagnostics         = module.logging.diagnostics
+  tags                = local.tags
+}
