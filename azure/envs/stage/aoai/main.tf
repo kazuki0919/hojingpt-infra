@@ -48,6 +48,21 @@ locals {
     }
   }
 
+  ada002 = {
+    model1001 = {
+      model_name    = "text-embedding-ada-002"
+      model_version = "2"
+    }
+  }
+
+  whisper = {
+    # TODO:
+    # model2001 = {
+    #   model_name    = "whisper"
+    #   model_version = "001"
+    # }
+  }
+
   # network.address_space is required if creating a new VNET. Omit if referencing an existing VNET.
   cognitive_services = {
     "001" = {
@@ -55,39 +70,90 @@ locals {
       network = {
         vnet_name     = "vnet-${local.name}-cog-001"
         address_space = ["10.200.0.0/16"]
-        subnets = {
-          "subnet-${local.name}-001" = {
-            cidrs = ["10.200.0.0/20"]
-          }
-        }
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.200.0.0/20"] } }
       }
-      deployments = merge(local.gpt35, local.gpt4)
+      deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "002" = {
       location = "francecentral"
       network = {
         vnet_name     = "vnet-${local.name}-cog-002"
         address_space = ["10.201.0.0/16"]
-        subnets = {
-          "subnet-${local.name}-001" = {
-            cidrs = ["10.201.0.0/20"]
-          }
-        }
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.201.0.0/20"] } }
       }
-      deployments = merge(local.gpt35, local.gpt4)
+      deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "003" = {
       location = "uksouth"
       network = {
         vnet_name     = "vnet-${local.name}-cog-003"
         address_space = ["10.202.0.0/16"]
-        subnets = {
-          "subnet-${local.name}-001" = {
-            cidrs = ["10.202.0.0/20"]
-          }
-        }
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.202.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.ada002)
+    }
+    "004" = {
+      location = "northcentralus"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-004"
+        address_space = ["10.203.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.203.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.ada002, local.whisper)
+    }
+    "005" = {
+      location = "australiaeast"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-005"
+        address_space = ["10.204.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.204.0.0/20"] } }
       }
       deployments = local.gpt35
+    }
+    "006" = {
+      location = "eastus2"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-006"
+        address_space = ["10.205.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.205.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.ada002)
+    }
+    "007" = {
+      location = "canadaeast"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-007"
+        address_space = ["10.206.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.206.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.gpt4, local.ada002)
+    }
+    "008" = {
+      location = "swedencentral"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-008"
+        address_space = ["10.207.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.207.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.gpt4, local.ada002)
+    }
+    "009" = {
+      location = "switzerlandnorth"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-009"
+        address_space = ["10.208.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.208.0.0/20"] } }
+      }
+      deployments = merge(local.gpt35, local.gpt4, local.ada002)
+    }
+    "010" = {
+      location = "westeurope"
+      network = {
+        vnet_name     = "vnet-${local.name}-cog-010"
+        address_space = ["10.209.0.0/16"]
+        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.209.0.0/20"] } }
+      }
+      deployments = merge(local.ada002, local.whisper)
     }
   }
 }
