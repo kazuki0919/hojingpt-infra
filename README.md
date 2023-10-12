@@ -64,6 +64,7 @@ The following resources are manually configured.
     - Approval of private endpoint connections
     - ID
     - Scale and Replica
+    - Liveness Probe
     - Secret
 - Logic Apps
 
@@ -233,7 +234,7 @@ AzureDiagnostics
 # NOTE
 - [Azure Resource Naming Conventions](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming)
 - List of [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/locations/)
-- [About Azure OpenAI settings](https://docs.google.com/spreadsheets/d/1NcfCNGKDNJ5AoW8NXx4ca9LCQjVN5HpYuNhrFey1DJ8/edit#gid=144614746)
+- [About Azure OpenAI settings](https://docs.google.com/spreadsheets/d/1NcfCNGKDNJ5AoW8NXx4ca9LCQjVN5HpYuNhrFey1DJ8/edit#gid=1481855121)
 
    ```bash
    az account list-locations -o table

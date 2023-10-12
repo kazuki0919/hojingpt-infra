@@ -10,7 +10,7 @@ variable "location" {
   type = string
 }
 
-variable "kv_allow_ips" {
+variable "kv_allow_cidrs" {
   type    = list(string)
   default = []
 }

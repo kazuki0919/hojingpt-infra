@@ -22,10 +22,12 @@ locals {
   ]
 
   allow_ips = [
-    "222.230.117.190/32", # yusuke.yoda's home IP. To be removed at a later.
-    "150.249.202.236/32", # givery's office 8F
-    "150.249.192.10/32",  # givery's office 7F
+    "222.230.117.190", # yusuke.yoda's home IP. To be removed at a later.
+    "150.249.202.236", # givery's office 8F
+    "150.249.192.10",  # givery's office 7F
   ]
+
+  allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
   users = {
     "ad94dd20-bb7f-46e6-a326-73925eef35ab" = "yusuke.yoda@givery.onmicrosoft.com"
@@ -79,7 +81,7 @@ module "security" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  kv_allow_ips        = local.allow_ips
+  kv_allow_cidrs      = local.allow_cidrs
   kv_users            = local.users
 
   kv_subnets = [

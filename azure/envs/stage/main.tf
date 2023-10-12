@@ -22,10 +22,12 @@ locals {
   ]
 
   allow_ips = [
-    "222.230.117.190/32", # yusuke.yoda's home IP. To be removed at a later.
-    "150.249.202.236/32", # givery's office 8F
-    "150.249.192.10/32",  # givery's office 7F
+    "222.230.117.190", # yusuke.yoda's home IP. To be removed at a later.
+    "150.249.202.236", # givery's office 8F
+    "150.249.192.10",  # givery's office 7F
   ]
+
+  allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
   users = {
     "ad94dd20-bb7f-46e6-a326-73925eef35ab" = "yusuke.yoda@givery.onmicrosoft.com"
@@ -78,7 +80,7 @@ module "security" {
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  kv_allow_ips        = local.allow_ips
+  kv_allow_cidrs      = local.allow_cidrs
   kv_users            = local.users
 
   kv_subnets = [
@@ -239,4 +241,43 @@ module "mail" {
   resource_group_name = data.azurerm_resource_group.main.name
   diagnostics         = module.logging.diagnostics
   tags                = local.tags
+}
+
+module "storage" {
+  source                = "../../modules/storage"
+  name                  = "hojingpt-${local.env}"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  location              = data.azurerm_resource_group.main.location
+  diagnostics           = module.logging.diagnostics
+  backup_retention_days = 1
+  tags                  = local.tags
+
+  network = {
+    subnet_id               = module.network.subnet_app.id
+    allow_ips               = local.allow_ips
+    private_link_access_ids = [for s in module.search : s.id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "search" {
+  name                = "privatelink.search.windows.net"
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = local.tags
+}
+
+module "search" {
+  for_each            = toset(["001"])
+  source              = "../../modules/openai/search"
+  name                = "hojingpt-${local.env}"
+  name_suffix         = each.key
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  allow_ips           = local.allow_ips
+  tags                = local.tags
+
+  private_endpoint = {
+    subnet_id   = module.network.subnet_app.id
+    location    = data.azurerm_resource_group.main.location
+    dns_zone_id = azurerm_private_dns_zone.search.id
+  }
 }

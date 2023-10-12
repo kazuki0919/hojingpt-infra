@@ -20,7 +20,7 @@ resource "azurerm_key_vault" "main" {
   network_acls {
     bypass                     = "AzureServices"
     default_action             = "Deny"
-    ip_rules                   = var.kv_allow_ips
+    ip_rules                   = var.kv_allow_cidrs
     virtual_network_subnet_ids = var.kv_subnets
   }
 
