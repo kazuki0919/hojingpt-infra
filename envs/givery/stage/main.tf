@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-hojingpt-prod"
-    storage_account_name = "sthojingptterraformprod"
+    resource_group_name  = "rg-hojingpt-stage"
+    storage_account_name = "sthojingptterraformstage"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
   }
@@ -12,13 +12,13 @@ provider "azurerm" {
 }
 
 locals {
-  env = "prod"
+  env = "stage"
 
   domains = [
-    "hojingpt.com",
-    "azure.hojingpt.com",
-    "hojingai.com",
-    # "azure.hojingai.com",
+    "staging.hojingpt.com",
+    "staging-azure.hojingpt.com",
+    # "staging.hojingai.com",
+    # "staging-azure.hojingai.com",
   ]
 
   allow_ips = [
@@ -44,41 +44,40 @@ data "azurerm_resource_group" "main" {
 }
 
 module "network" {
-  source              = "../../modules/network"
+  source              = "../../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
-  address_space       = ["10.1.0.0/16"]
+  address_space       = ["10.0.0.0/16"]
 
   subnet_app = {
     name  = "snet-hojingpt-${local.env}-001"
-    cidrs = ["10.1.0.0/20"]
+    cidrs = ["10.0.0.0/23"]
   }
 
   subnet_mysql = {
     name  = "snet-hojingpt-${local.env}-002"
-    cidrs = ["10.1.16.0/24"]
+    cidrs = ["10.0.2.0/24"]
   }
 
   subnet_bastion = {
-    cidrs = ["10.1.17.0/24"]
+    cidrs = ["10.0.3.0/24"]
   }
 
   tags = local.tags
 }
 
 module "logging" {
-  source                   = "../../modules/logging"
+  source                   = "../../../modules/logging"
   resource_group_name      = data.azurerm_resource_group.main.name
   location                 = data.azurerm_resource_group.main.location
   name                     = "hojingpt-${local.env}"
-  tags                     = local.tags
   storage_replication_type = "GRS" # TODO: Would like to switch to ZRS if possible...
-  retention_in_days        = 730
+  tags                     = local.tags
 }
 
 module "security" {
-  source              = "../../modules/security"
+  source              = "../../../modules/security"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
@@ -95,7 +94,7 @@ module "security" {
 }
 
 module "bastion" {
-  source              = "../../modules/bastion"
+  source              = "../../../modules/bastion"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
@@ -107,7 +106,7 @@ module "bastion" {
 }
 
 module "batch" {
-  source              = "../../modules/batch"
+  source              = "../../../modules/batch"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
@@ -117,7 +116,7 @@ module "batch" {
 }
 
 module "redis" {
-  source                   = "../../modules/cache/redis"
+  source                   = "../../../modules/cache/redis"
   resource_group_name      = data.azurerm_resource_group.main.name
   location                 = data.azurerm_resource_group.main.location
   name                     = "hojingpt-${local.env}"
@@ -129,31 +128,20 @@ module "redis" {
     subnet_id = module.network.subnet_app.id
   }
 
+  diagnostics = module.logging.diagnostics
+  tags        = local.tags
+
+  # TODO: Delete when persistence is no longer required.
   sku_name                        = "Premium"
   family                          = "P"
   capacity                        = 1
-  zones                           = ["1", "2"]
-  maxfragmentationmemory_reserved = 642
-  maxmemory_delta                 = 642
-  maxmemory_reserved              = 642
-
-  rdb = {
-    backup_frequency          = 60
-    backup_max_snapshot_count = 1
-  }
-
-  # Tue 01:00-06:00 JST
-  maintenance = {
-    day_of_week    = "Monday"
-    start_hour_utc = 16
-  }
-
-  diagnostics = module.logging.diagnostics
-  tags        = local.tags
+  maxfragmentationmemory_reserved = 627
+  maxmemory_delta                 = 627
+  maxmemory_reserved              = 627
 }
 
 module "mysql" {
-  source              = "../../modules/database/mysql"
+  source              = "../../../modules/database/mysql"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
@@ -166,23 +154,9 @@ module "mysql" {
     subnet_id = module.network.subnet_mysql.id
   }
 
-  sku_name = "MO_Standard_E4ads_v5"
-
-  high_availability = {
-    mode                      = "ZoneRedundant"
-    standby_availability_zone = "3"
-  }
-
   storage = {
-    iops    = 684
-    size_gb = 128
-  }
-
-  # Tue 03:00-04:00 JST
-  maintenance = {
-    day_of_week  = 1
-    start_hour   = 18
-    start_minute = 0
+    iops    = 360
+    size_gb = 20
   }
 
   diagnostics = module.logging.diagnostics
@@ -190,7 +164,7 @@ module "mysql" {
 }
 
 module "app" {
-  source              = "../../modules/app"
+  source              = "../../../modules/app"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   name                = "hojingpt-${local.env}"
@@ -204,14 +178,14 @@ module "app" {
 
 data "azurerm_lb" "kubernetes_internal" {
   name                = "kubernetes-internal"
-  resource_group_name = "MC_salmonsmoke-97ec2d6e-rg_salmonsmoke-97ec2d6e_japaneast"
+  resource_group_name = "mc_purplewater-a7ff9cea-rg_purplewater-a7ff9cea_japaneast"
 }
 
 module "frontdoor" {
-  source              = "../../modules/frontdoor"
+  source              = "../../../modules/frontdoor"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}-jpeast"
+  name                = "houjingpt-${local.env}-jpeast"
 
   container = {
     app_name        = "hojingpt-${local.env}-001"
@@ -231,7 +205,7 @@ module "frontdoor" {
 }
 
 module "monitoring" {
-  source              = "../../modules/monitoring"
+  source              = "../../../modules/monitoring"
   name                = "hojingpt-${local.env}"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
@@ -250,27 +224,62 @@ module "monitoring" {
     "${module.redis.main.name}" = module.redis.main.id
   }
 
-  webtest = {
-    "default" = "https://hojingpt.com/sys/health"
-  }
-
   logicapp_metrics = {
     name         = "la-hojingpt-${local.env}-metrics-alert"
-    callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/accef70a4e2745b2aeb7dac7a0aa1997/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=AE3hIXhvOW8zg43Uc8eiwWM5lwrc2ODrvRFzd3HXJ9Q"
+    callback_url = "https://prod-09.japaneast.logic.azure.com:443/workflows/646aec02cc574ab99878716304c90cea/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=g2NurfeYoEzn0FfAEt2Q8p9r8l9CAA-Lc51VlB9B7Yk"
   }
 
   logicapp_applogs = {
     name         = "la-hojingpt-${local.env}-applogs-alert"
-    callback_url = "https://prod-19.japaneast.logic.azure.com:443/workflows/457b86f3b3fa4338a985e53e4cab07cd/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=s1ERPDSEIPxAKGsqCE-4OqY40zgqncE_m_7d0b4imtk"
+    callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/f25d2cc7d66a49be971b9809441ee94d/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dmimCaz4L7bumtmOmrML75GR4yS50KBR3ufATiYRGxg"
   }
 
   tags = local.tags
 }
 
 module "mail" {
-  source              = "../../modules/mail"
+  source              = "../../../modules/mail"
   name                = "hojingpt-${local.env}"
   resource_group_name = data.azurerm_resource_group.main.name
   diagnostics         = module.logging.diagnostics
   tags                = local.tags
+}
+
+module "storage" {
+  source                = "../../../modules/storage"
+  name                  = "hojingpt-${local.env}"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  location              = data.azurerm_resource_group.main.location
+  diagnostics           = module.logging.diagnostics
+  backup_retention_days = 1
+  tags                  = local.tags
+
+  network = {
+    subnet_id               = module.network.subnet_app.id
+    allow_ips               = local.allow_ips
+    private_link_access_ids = [for s in module.search : s.id]
+  }
+}
+
+resource "azurerm_private_dns_zone" "search" {
+  name                = "privatelink.search.windows.net"
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = local.tags
+}
+
+module "search" {
+  for_each            = toset(["001"])
+  source              = "../../../modules/openai/search"
+  name                = "hojingpt-${local.env}"
+  name_suffix         = each.key
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  allow_ips           = local.allow_ips
+  tags                = local.tags
+
+  private_endpoint = {
+    subnet_id   = module.network.subnet_app.id
+    location    = data.azurerm_resource_group.main.location
+    dns_zone_id = azurerm_private_dns_zone.search.id
+  }
 }

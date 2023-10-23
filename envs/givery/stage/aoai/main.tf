@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-hojingpt-prod"
-    storage_account_name = "sthojingptterraformprod"
+    resource_group_name  = "rg-hojingpt-stage"
+    storage_account_name = "sthojingptterraformstage"
     container_name       = "tfstate-aoai"
     key                  = "terraform.tfstate"
   }
@@ -12,7 +12,7 @@ provider "azurerm" {
 }
 
 locals {
-  env  = "prod"
+  env  = "stage"
   name = "hojingpt"
 
   tags = {
@@ -200,7 +200,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
 
 module "network" {
   for_each            = local.cognitive_services
-  source              = "../../../modules/openai/network"
+  source              = "../../../../modules/openai/network"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = each.value.location
   vnet_name           = each.value.network.vnet_name
@@ -211,7 +211,7 @@ module "network" {
 
 module "cognitive_service" {
   for_each            = local.cognitive_services
-  source              = "../../../modules/openai/cognitive"
+  source              = "../../../../modules/openai/cognitive"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = each.value.location
   name                = "${local.name}-${local.env}"
