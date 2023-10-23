@@ -68,11 +68,12 @@ module "network" {
 }
 
 module "logging" {
-  source              = "../../modules/logging"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  tags                = local.tags
+  source                   = "../../modules/logging"
+  resource_group_name      = data.azurerm_resource_group.main.name
+  location                 = data.azurerm_resource_group.main.location
+  name                     = "hojingpt-${local.env}"
+  storage_replication_type = "GRS" # TODO: Would like to switch to ZRS if possible...
+  tags                     = local.tags
 }
 
 module "security" {
@@ -115,11 +116,12 @@ module "batch" {
 }
 
 module "redis" {
-  source              = "../../modules/cache/redis"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  user_assigned_ids   = [module.security.user_assigned_identity.id]
+  source                   = "../../modules/cache/redis"
+  resource_group_name      = data.azurerm_resource_group.main.name
+  location                 = data.azurerm_resource_group.main.location
+  name                     = "hojingpt-${local.env}"
+  user_assigned_ids        = [module.security.user_assigned_identity.id]
+  storage_replication_type = "GRS" # TODO: Would like to switch to ZRS if possible...
 
   network = {
     vnet_id   = module.network.vnet.id

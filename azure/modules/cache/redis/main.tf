@@ -19,7 +19,7 @@ resource "azurerm_storage_account" "persistence" {
   allow_nested_items_to_be_public = false
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
-  account_replication_type        = "GRS"
+  account_replication_type        = var.storage_replication_type
 }
 
 resource "azurerm_redis_cache" "main" {

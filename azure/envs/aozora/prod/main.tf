@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-hojingpt-prod"
-    storage_account_name = "sthojingptterraformprod"
+    resource_group_name  = "rg-aozoragpt-prod"
+    storage_account_name = "staozoragpttfprod"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
   }
@@ -12,14 +12,9 @@ provider "azurerm" {
 }
 
 locals {
-  env = "prod"
-
-  domains = [
-    "hojingpt.com",
-    "azure.hojingpt.com",
-    "hojingai.com",
-    # "azure.hojingai.com",
-  ]
+  env     = "prod"
+  name    = "aozoragpt"
+  domains = ["aozorabank.hojingpt.com"]
 
   allow_ips = [
     "222.230.117.190", # yusuke.yoda's home IP. To be removed at a later.
@@ -30,33 +25,33 @@ locals {
   allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
   users = {
-    "ad94dd20-bb7f-46e6-a326-73925eef35ab" = "yusuke.yoda@givery.onmicrosoft.com"
+    "22fa63f9-94d8-4a82-a7b1-e9c5e8b43e9b" = "yusuke.yoda@givery.onmicrosoft.com"
   }
 
   tags = {
-    service = "hojingpt"
+    service = local.name
     env     = local.env
   }
 }
 
 data "azurerm_resource_group" "main" {
-  name = "rg-hojingpt-${local.env}"
+  name = "rg-${local.name}-${local.env}"
 }
 
 module "network" {
-  source              = "../../modules/network"
+  source              = "../../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
+  name                = "${local.name}-${local.env}"
   address_space       = ["10.1.0.0/16"]
 
   subnet_app = {
-    name  = "snet-hojingpt-${local.env}-001"
+    name  = "snet-${local.name}-${local.env}-001"
     cidrs = ["10.1.0.0/20"]
   }
 
   subnet_mysql = {
-    name  = "snet-hojingpt-${local.env}-002"
+    name  = "snet-${local.name}-${local.env}-002"
     cidrs = ["10.1.16.0/24"]
   }
 
@@ -68,20 +63,19 @@ module "network" {
 }
 
 module "logging" {
-  source                   = "../../modules/logging"
-  resource_group_name      = data.azurerm_resource_group.main.name
-  location                 = data.azurerm_resource_group.main.location
-  name                     = "hojingpt-${local.env}"
-  tags                     = local.tags
-  storage_replication_type = "GRS" # TODO: Would like to switch to ZRS if possible...
-  retention_in_days        = 730
+  source              = "../../../modules/logging"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "${local.name}-${local.env}"
+  tags                = local.tags
+  retention_in_days   = 730
 }
 
 module "security" {
-  source              = "../../modules/security"
+  source              = "../../../modules/security"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
+  name                = "${local.name}-${local.env}"
   kv_allow_cidrs      = local.allow_cidrs
   kv_users            = local.users
 
@@ -95,34 +89,34 @@ module "security" {
 }
 
 module "bastion" {
-  source              = "../../modules/bastion"
+  source              = "../../../modules/bastion"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  ssh_key             = "ssh-hojingpt-${local.env}-001"
+  name                = "${local.name}-${local.env}"
+  ssh_key             = "ssh-${local.name}-${local.env}-001"
   bastion_subnet_id   = module.network.subnet_bastion.id
   vm_subnet_id        = module.network.subnet_app.id
   diagnostics         = module.logging.diagnostics
   tags                = local.tags
 }
 
-module "batch" {
-  source              = "../../modules/batch"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  ssh_key             = "ssh-hojingpt-${local.env}-001"
-  subnet_id           = module.network.subnet_app.id
-  tags                = local.tags
-}
+# TODO: Build if need
+# module "batch" {
+#   source              = "../../../modules/batch"
+#   resource_group_name = data.azurerm_resource_group.main.name
+#   location            = data.azurerm_resource_group.main.location
+#   name                = "${local.name}-${local.env}"
+#   ssh_key             = "ssh-${local.name}-${local.env}-001"
+#   subnet_id           = module.network.subnet_app.id
+#   tags                = local.tags
+# }
 
 module "redis" {
-  source                   = "../../modules/cache/redis"
-  resource_group_name      = data.azurerm_resource_group.main.name
-  location                 = data.azurerm_resource_group.main.location
-  name                     = "hojingpt-${local.env}"
-  user_assigned_ids        = [module.security.user_assigned_identity.id]
-  storage_replication_type = "GRS" # TODO: Would like to switch to ZRS if possible...
+  source              = "../../../modules/cache/redis"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  name                = "${local.name}-${local.env}"
+  user_assigned_ids   = [module.security.user_assigned_identity.id]
 
   network = {
     vnet_id   = module.network.vnet.id
@@ -153,10 +147,10 @@ module "redis" {
 }
 
 module "mysql" {
-  source              = "../../modules/database/mysql"
+  source              = "../../../modules/database/mysql"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
+  name                = "${local.name}-${local.env}"
   key_vault_id        = module.security.key_vault.id
   db_name             = "hojingpt"
   administrator_login = "hojingpt"
@@ -170,7 +164,7 @@ module "mysql" {
 
   high_availability = {
     mode                      = "ZoneRedundant"
-    standby_availability_zone = "3"
+    # standby_availability_zone = "3"
   }
 
   storage = {
@@ -190,11 +184,11 @@ module "mysql" {
 }
 
 module "app" {
-  source              = "../../modules/app"
+  source              = "../../../modules/app"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}"
-  registory_name      = "crhojingpt${local.env}"
+  name                = "${local.name}-${local.env}"
+  registory_name      = "cr${local.name}${local.env}"
   user_assigned_ids   = [module.security.user_assigned_identity.id]
   subnet_id           = module.network.subnet_app.id
   key_vault_object_id = module.security.key_vault_access_policy.object_id
@@ -204,18 +198,17 @@ module "app" {
 
 data "azurerm_lb" "kubernetes_internal" {
   name                = "kubernetes-internal"
-  resource_group_name = "MC_salmonsmoke-97ec2d6e-rg_salmonsmoke-97ec2d6e_japaneast"
+  resource_group_name = "MC_thankfulriver-5d6eca4c-rg_thankfulriver-5d6eca4c_japaneast"
 }
 
 module "frontdoor" {
-  source              = "../../modules/frontdoor"
+  source              = "../../../modules/frontdoor"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  name                = "hojingpt-${local.env}-jpeast"
+  name                = "${local.name}-${local.env}-jpeast"
 
   container = {
-    app_name        = "hojingpt-${local.env}-001"
-    aoai_name       = "hojingpt-${local.env}-002"
+    app_name        = "${local.name}-${local.env}-001"
     subnet_id       = module.network.subnet_app.id
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
@@ -231,15 +224,16 @@ module "frontdoor" {
 }
 
 module "monitoring" {
-  source              = "../../modules/monitoring"
-  name                = "hojingpt-${local.env}"
+  source              = "../../../modules/monitoring"
+  name                = "${local.name}-${local.env}"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   diagnostics         = module.logging.diagnostics
 
   container_apps = {
-    "ca-hojingpt-${local.env}-001" = {}
-    "ca-hojingpt-${local.env}-002" = {}
+    # TODO:
+    # "ca-${local.name}-${local.env}-001" = {}
+    # "ca-${local.name}-${local.env}-002" = {}
   }
 
   mysql = {
@@ -250,26 +244,27 @@ module "monitoring" {
     "${module.redis.main.name}" = module.redis.main.id
   }
 
-  webtest = {
-    "default" = "https://hojingpt.com/sys/health"
-  }
+  # TODO:
+  # webtest = {
+  #   "default" = "https://aozorabank.hojingpt.com/sys/health"
+  # }
 
   logicapp_metrics = {
-    name         = "la-hojingpt-${local.env}-metrics-alert"
-    callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/accef70a4e2745b2aeb7dac7a0aa1997/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=AE3hIXhvOW8zg43Uc8eiwWM5lwrc2ODrvRFzd3HXJ9Q"
+    name         = "la-${local.name}-${local.env}-metrics-alert"
+    callback_url = "https://prod-11.japaneast.logic.azure.com:443/workflows/7283b7b3ea8a4ab5bd8758ce071387e9/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CFOyu7Sk40EpSKtwIFsqSKWxFcmicXFCfxzJWD_lg4g"
   }
 
   logicapp_applogs = {
-    name         = "la-hojingpt-${local.env}-applogs-alert"
-    callback_url = "https://prod-19.japaneast.logic.azure.com:443/workflows/457b86f3b3fa4338a985e53e4cab07cd/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=s1ERPDSEIPxAKGsqCE-4OqY40zgqncE_m_7d0b4imtk"
+    name         = "la-${local.name}-${local.env}-applogs-alert"
+    callback_url = "https://prod-04.japaneast.logic.azure.com:443/workflows/63508fc74fd74551a2fd85f5f0926e04/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MQMx3yS0-WPf9jrulLjOzSjYkkMO5U4rxrfqv6IszHI"
   }
 
   tags = local.tags
 }
 
 module "mail" {
-  source              = "../../modules/mail"
-  name                = "hojingpt-${local.env}"
+  source              = "../../../modules/mail"
+  name                = "${local.name}-${local.env}"
   resource_group_name = data.azurerm_resource_group.main.name
   diagnostics         = module.logging.diagnostics
   tags                = local.tags

@@ -38,7 +38,7 @@ variable "backup_retention_days" {
 
 variable "zone" {
   type    = string
-  default = "1"
+  default = null
 }
 
 variable "storage" {
@@ -59,7 +59,7 @@ variable "administrator_login" {
 variable "high_availability" {
   type = object({
     mode                      = string
-    standby_availability_zone = string
+    standby_availability_zone = optional(string, null)
   })
   default = null
 }

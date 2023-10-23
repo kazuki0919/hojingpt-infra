@@ -13,10 +13,10 @@ provider "azurerm" {
 
 locals {
   env  = "prod"
-  name = "hojingpt-${local.env}"
+  name = "hojingpt"
 
   tags = {
-    service = "hojingpt"
+    service = local.name
     env     = local.env
   }
 
@@ -68,90 +68,90 @@ locals {
     "001" = {
       location = "eastus"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-001"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-001"
         address_space = ["10.200.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.200.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.200.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "002" = {
       location = "francecentral"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-002"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-002"
         address_space = ["10.201.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.201.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.201.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "003" = {
       location = "uksouth"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-003"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-003"
         address_space = ["10.202.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.202.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.202.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.ada002)
     }
     "004" = {
       location = "northcentralus"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-004"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-004"
         address_space = ["10.203.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.203.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.203.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.ada002, local.whisper)
     }
     "005" = {
       location = "australiaeast"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-005"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-005"
         address_space = ["10.204.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.204.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.204.0.0/20"] } }
       }
       deployments = local.gpt35
     }
     "006" = {
       location = "eastus2"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-006"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-006"
         address_space = ["10.205.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.205.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.205.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.ada002)
     }
     "007" = {
       location = "canadaeast"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-007"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-007"
         address_space = ["10.206.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.206.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.206.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "008" = {
       location = "swedencentral"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-008"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-008"
         address_space = ["10.207.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.207.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.207.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "009" = {
       location = "switzerlandnorth"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-009"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-009"
         address_space = ["10.208.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.208.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.208.0.0/20"] } }
       }
       deployments = merge(local.gpt35, local.gpt4, local.ada002)
     }
     "010" = {
       location = "westeurope"
       network = {
-        vnet_name     = "vnet-${local.name}-cog-010"
+        vnet_name     = "vnet-${local.name}-${local.env}-cog-010"
         address_space = ["10.209.0.0/16"]
-        subnets       = { "subnet-${local.name}-001" = { cidrs = ["10.209.0.0/20"] } }
+        subnets       = { "subnet-${local.name}-${local.env}-001" = { cidrs = ["10.209.0.0/20"] } }
       }
       deployments = merge(local.ada002, local.whisper)
     }
@@ -159,27 +159,27 @@ locals {
 }
 
 data "azurerm_resource_group" "main" {
-  name = "rg-${local.name}"
+  name = "rg-${local.name}-${local.env}"
 }
 
 data "azurerm_virtual_network" "main" {
-  name                = "vnet-${local.name}-001"
+  name                = "vnet-${local.name}-${local.env}-001"
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
 data "azurerm_subnet" "main" {
-  name                 = "snet-${local.name}-001"
+  name                 = "snet-${local.name}-${local.env}-001"
   virtual_network_name = data.azurerm_virtual_network.main.name
   resource_group_name  = data.azurerm_resource_group.main.name
 }
 
 data "azurerm_log_analytics_workspace" "diagnostics" {
-  name                = "law-${local.name}"
+  name                = "law-${local.name}-${local.env}"
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
 data "azurerm_storage_account" "diagnostics" {
-  name                = "st${replace(local.name, "-", "")}logs"
+  name                = "st${replace("${local.name}-${local.env}", "-", "")}logs"
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
@@ -190,7 +190,7 @@ resource "azurerm_private_dns_zone" "main" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
-  name                  = "link-${local.name}-cog-001"
+  name                  = "link-${local.name}-${local.env}-cog-001"
   resource_group_name   = data.azurerm_resource_group.main.name
   virtual_network_id    = data.azurerm_virtual_network.main.id
   private_dns_zone_name = azurerm_private_dns_zone.main.name
@@ -214,7 +214,7 @@ module "cognitive_service" {
   source              = "../../../modules/openai/cognitive"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = each.value.location
-  name                = local.name
+  name                = "${local.name}-${local.env}"
   name_suffix         = each.key
   deployments         = each.value.deployments
 
@@ -222,7 +222,7 @@ module "cognitive_service" {
     ip_rules = local.allow_ips
     virtual_network_rules = [
       {
-        subnet_id = module.network[each.key].subnets["subnet-${local.name}-001"].id
+        subnet_id = module.network[each.key].subnets["subnet-${local.name}-${local.env}-001"].id
       }
     ]
   }

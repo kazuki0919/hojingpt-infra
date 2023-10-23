@@ -39,7 +39,7 @@
     ENV={dev|stage|prod}
     NAME=hojingpt
     RESOURCE_GROUP_NAME=rg-${NAME}-${ENV}
-    STORAGE_ACCOUNT_NAME=st${NAME}terraform${ENV}
+    STORAGE_ACCOUNT_NAME=st${NAME}tf${ENV}
     CONTAINER_NAME=tfstate
 
     # Create resource group

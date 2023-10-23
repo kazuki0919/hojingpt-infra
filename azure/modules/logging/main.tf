@@ -15,6 +15,11 @@ variable "retention_in_days" {
   default = 30
 }
 
+variable "storage_replication_type" {
+  type    = string
+  default = "ZRS"
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -37,7 +42,7 @@ resource "azurerm_storage_account" "main" {
   allow_nested_items_to_be_public = false
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
-  account_replication_type        = "GRS"
+  account_replication_type        = var.storage_replication_type
 }
 
 output "diagnostics" {

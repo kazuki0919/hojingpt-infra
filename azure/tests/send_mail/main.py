@@ -9,7 +9,7 @@ def callback(response):
   if 200 <= response.http_response.status_code <= 299:
     pass
   else:
-    raise Exception(response.http_response) # 429 はここで捕捉される
+    raise Exception(response.http_response) # 429 はここで検知される（テストで確認済）
 
 if __name__ == "__main__":
   client = EmailClient.from_connection_string(connection_string, raw_response_hook=callback)
@@ -25,12 +25,17 @@ if __name__ == "__main__":
               "plainText": f"Hello World. {index}",
           }
       }
-      # ステージング環境は1分あたり30通まで、1時間あたり100通までしか送信できない。超えると 429 が発生。
-      # see: https://learn.microsoft.com/ja-jp/azure/communication-services/concepts/service-limits#email
+
+      # 現在の Rate Limit は1分あたり1000通、1時間あたり30000通。超えると 429 が返る。
+      # この Rate Limit はステージング環境と本番環境の両方に適用される。
+      # Rate Limit の変更は MS のサポートに問い合わせる必要があり、2~3日かかる。
       poller = client.begin_send(message)
-      # poller.result()  # この処理は非推奨（めちゃくちゃ遅いので）
+
+      # この処理でメール送信の完了を待ち受けることができるが、めちゃくちゃ遅いので非推奨
+      # poller.result()
+
       print(f"succeeded: {index}")
     except Exception as e:
-      print(e)  # callback で発生した Exception はここで捕獲される
+      print(e)  # callback で発生した Exception はここで検知される（テストで確認済）
 
   print("done")

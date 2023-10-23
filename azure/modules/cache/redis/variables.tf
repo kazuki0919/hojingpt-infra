@@ -98,3 +98,8 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "storage_replication_type" {
+  type    = string
+  default = "ZRS"
+}

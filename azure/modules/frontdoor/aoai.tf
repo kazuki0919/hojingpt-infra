@@ -1,9 +1,11 @@
 data "azurerm_container_app" "aoai" {
+  count               = var.container.aoai_name == null ? 0 : 1
   name                = "ca-${var.container.aoai_name}"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "aoai" {
+  count                    = var.container.aoai_name == null ? 0 : 1
   name                     = "fes-${var.name}-002"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
   session_affinity_enabled = false
@@ -18,14 +20,15 @@ resource "azurerm_cdn_frontdoor_origin_group" "aoai" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "aoai" {
+  count                         = var.container.aoai_name == null ? 0 : 1
   name                          = "fdo-${var.name}-002"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.aoai.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.aoai.0.id
 
   enabled                        = true
-  host_name                      = data.azurerm_container_app.aoai.ingress.0.fqdn
+  host_name                      = data.azurerm_container_app.aoai.0.ingress.0.fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = data.azurerm_container_app.aoai.ingress.0.fqdn
+  origin_host_header             = data.azurerm_container_app.aoai.0.ingress.0.fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
@@ -38,6 +41,7 @@ resource "azurerm_cdn_frontdoor_origin" "aoai" {
 }
 
 resource "azurerm_cdn_frontdoor_rule" "aoai" {
+  count                     = var.container.aoai_name == null ? 0 : 1
   name                      = "AOAIRoutingRule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.main.id
   order                     = 1
@@ -53,7 +57,7 @@ resource "azurerm_cdn_frontdoor_rule" "aoai" {
 
   actions {
     route_configuration_override_action {
-      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.aoai.id
+      cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.aoai.0.id
       forwarding_protocol           = "MatchRequest"
       cache_behavior                = "Disabled"
     }
