@@ -205,9 +205,7 @@ module "monitoring" {
   diagnostics         = module.logging.diagnostics
 
   container_apps = {
-    # TODO:
-    # "ca-${local.name}-${local.env}-001" = {}
-    # "ca-${local.name}-${local.env}-002" = {}
+    "ca-${local.name}-${local.env}-001" = {}
   }
 
   mysql = {
