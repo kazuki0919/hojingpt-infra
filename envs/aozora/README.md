@@ -1,3 +1,7 @@
+# あおぞら銀行
+
+- AOAI には日本リージョンのみを使用する。OpenAI は使わない
+
 # Bastion
 
 ### SSH Key
