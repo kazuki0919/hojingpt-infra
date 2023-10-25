@@ -37,6 +37,17 @@ variable "response_timeout_seconds" {
   default = 240
 }
 
+variable "waf_mode" {
+  type        = string
+  default     = "Detection"
+  description = "Valid value are 'Detection' or 'Prevention'. The default is Detection"
+}
+
+variable "waf_allow_cidrs" {
+  type    = list(string)
+  default = []
+}
+
 variable "diagnostics" {
   type = object({
     log_analytics_workspace_id = string

@@ -24,6 +24,14 @@ locals {
 
   allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
+  # TODO: IP 制限をかけようとしたら SSO ログインできなくなったので無効化。顧客としては制限かけてほしいとのことなので、どうするか要検討
+  allow_cidrs_for_waf = [
+    # "150.249.192.10/32",  # givery's office 7F
+    # "150.249.202.236/32", # givery's office 8F
+    # "210.188.173.0/24",   # aozorabank's office
+    # "210.175.30.0/24",    # aozorabank's office (TODO: 2024/3までにIPが変更される予定なので、依頼が来たら対応する)
+  ]
+
   users = {
     "22fa63f9-94d8-4a82-a7b1-e9c5e8b43e9b" = "yusuke.yoda@givery.onmicrosoft.com"
   }
@@ -218,6 +226,9 @@ module "frontdoor" {
       host_name = domain
     }
   }
+
+  waf_mode        = length(local.allow_cidrs_for_waf) > 0 ? "Prevention" : "Detection"
+  waf_allow_cidrs = local.allow_cidrs_for_waf
 
   diagnostics = module.logging.diagnostics
   tags        = local.tags

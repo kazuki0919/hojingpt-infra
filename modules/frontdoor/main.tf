@@ -117,10 +117,32 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
   resource_group_name = var.resource_group_name
   sku_name            = var.sku_name
   enabled             = true
-  mode                = "Detection"
+  mode                = var.waf_mode
 
   custom_block_response_body        = "QmxvY2tlZCBieSBXQUY=" # "Blocked by WAF"
   custom_block_response_status_code = 403
+
+  # IP white list
+  dynamic "custom_rule" {
+    for_each = length(var.waf_allow_cidrs) > 0 ? [true] : []
+    content {
+      action                         = "Block"
+      enabled                        = true
+      name                           = "IPWhiteList"
+      priority                       = 100
+      rate_limit_duration_in_minutes = 1
+      rate_limit_threshold           = 100
+      type                           = "MatchRule"
+
+      match_condition {
+        match_values       = var.waf_allow_cidrs
+        match_variable     = "SocketAddr"
+        negation_condition = true
+        operator           = "IPMatch"
+        transforms         = []
+      }
+    }
+  }
 
   managed_rule {
     action  = "Log"

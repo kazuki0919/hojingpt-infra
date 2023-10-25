@@ -24,6 +24,8 @@ locals {
 
   allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
+  allow_cidrs_for_waf = []
+
   users = {
     "22fa63f9-94d8-4a82-a7b1-e9c5e8b43e9b" = "yusuke.yoda@givery.onmicrosoft.com"
   }
@@ -192,6 +194,9 @@ module "frontdoor" {
       host_name = domain
     }
   }
+
+  waf_mode        = length(local.allow_cidrs_for_waf) > 0 ? "Prevention" : "Detection"
+  waf_allow_cidrs = local.allow_cidrs_for_waf
 
   diagnostics = module.logging.diagnostics
   tags        = local.tags
