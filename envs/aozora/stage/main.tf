@@ -24,7 +24,10 @@ locals {
 
   allow_cidrs = [for ip in local.allow_ips : "${ip}/32"]
 
-  allow_cidrs_for_waf = []
+  allow_cidrs_for_waf = [
+    "150.249.192.10/32",  # givery's office 7F
+    "150.249.202.236/32", # givery's office 8F
+  ]
 
   users = {
     "22fa63f9-94d8-4a82-a7b1-e9c5e8b43e9b" = "yusuke.yoda@givery.onmicrosoft.com"

@@ -1,6 +1,7 @@
 # あおぞら銀行
 
 - AOAI には日本リージョンのみを使用する。OpenAI は使わない
+- Subsctiption: `xgai-aozoragpt-001`
 
 # Bastion
 
