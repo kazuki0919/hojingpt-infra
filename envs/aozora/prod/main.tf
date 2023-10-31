@@ -27,8 +27,10 @@ locals {
   allow_cidrs_for_waf = [
     "150.249.192.10/32",  # givery's office 7F
     "150.249.202.236/32", # givery's office 8F
-    "210.188.173.0/24",   # aozorabank's office
-    "210.175.30.0/24",    # aozorabank's office (TODO: 2024/3までにIPが変更される予定なので、依頼が来たら対応する)
+    "210.188.173.0/24",   # aozorabank's 本社
+    "210.175.30.0/24",    # aozorabank's 本社 (TODO: 2024/3までにIPが変更される予定なので、依頼が来たら対応する)
+    "61.117.157.34/30",   # aozorabank's あおぞら証券
+    "203.140.148.65/32",  # aozorabank's あおぞら証券
   ]
 
   users = {
