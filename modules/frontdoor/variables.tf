@@ -14,6 +14,7 @@ variable "container" {
   type = object({
     app_name        = string
     aoai_name       = optional(string, null)
+    blob_name       = optional(string, null)
     subnet_id       = string
     lb_frontend_ids = list(string)
   })

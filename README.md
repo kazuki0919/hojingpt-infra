@@ -159,6 +159,19 @@ redis-cli -h redis-hojingpt-prod-001.redis.cache.windows.net
 AUTH "${ACCESS_KEY}"
 ```
 
+# Container Apps + Front Door
+
+### Routeing Rules
+
+Front Door のバックエンドとして複数の Container Apps が展開されています。
+基本的に 001 にルーティングするようにしているが、パスやクエリストリングに応じて以下のようにオーバーライドして転送先を切り替えています。
+
+- hojingpt.com
+  - `/*`      -> ca-hojingpt-${env}-001: メインの ContainerApps
+  - `?aoai=1` -> ca-hojingpt-${env}-002: AOAI の API の実行だけに用意された ContainerApps。openai ライブラリの制限により、同じ ContainerApps に AOAI とそれ以外の API を混在させることができないため分離
+  - `{org_id}/blob_storage/{id}` -> ca-hojingpt-${env}-003: ファイルUL/DL専用。高負荷になることが想定されるのでメインの ContainerApps とは別
+
+
 # Deployment
 
 ### Build and Deploy for staging

@@ -190,6 +190,7 @@ module "frontdoor" {
   container = {
     app_name        = "hojingpt-${local.env}-001"
     aoai_name       = "hojingpt-${local.env}-002"
+    blob_name       = "hojingpt-${local.env}-003"
     subnet_id       = module.network.subnet_app.id
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
@@ -255,9 +256,8 @@ module "storage" {
   tags                  = local.tags
 
   network = {
-    subnet_id               = module.network.subnet_app.id
-    allow_ips               = local.allow_ips
-    private_link_access_ids = [for s in module.search : s.id]
+    subnet_id = module.network.subnet_app.id
+    allow_ips = local.allow_ips
   }
 }
 
@@ -268,18 +268,26 @@ resource "azurerm_private_dns_zone" "search" {
 }
 
 module "search" {
-  for_each            = toset(["001"])
-  source              = "../../../modules/openai/search"
-  name                = "hojingpt-${local.env}"
-  name_suffix         = each.key
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  allow_ips           = local.allow_ips
-  tags                = local.tags
-
-  private_endpoint = {
-    subnet_id   = module.network.subnet_app.id
-    location    = data.azurerm_resource_group.main.location
-    dns_zone_id = azurerm_private_dns_zone.search.id
+  for_each = {
+    "001" = {
+      public_access_enabled = false
+      private_endpoint = {
+        subnet_id   = module.network.subnet_app.id
+        location    = data.azurerm_resource_group.main.location
+        dns_zone_id = azurerm_private_dns_zone.search.id
+      }
+    }
+    "002" = {
+      public_access_enabled = true
+      private_endpoint      = null
+    }
   }
+  source                = "../../../modules/openai/search"
+  name                  = "hojingpt-${local.env}"
+  name_suffix           = each.key
+  resource_group_name   = data.azurerm_resource_group.main.name
+  location              = data.azurerm_resource_group.main.location
+  public_access_enabled = each.value.public_access_enabled
+  private_endpoint      = each.value.private_endpoint
+  tags                  = local.tags
 }

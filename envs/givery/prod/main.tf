@@ -216,6 +216,7 @@ module "frontdoor" {
   container = {
     app_name        = "hojingpt-${local.env}-001"
     aoai_name       = "hojingpt-${local.env}-002"
+    blob_name       = "hojingpt-${local.env}-001" #TODO: あとで 003 にする
     subnet_id       = module.network.subnet_app.id
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
@@ -273,4 +274,55 @@ module "mail" {
   resource_group_name = data.azurerm_resource_group.main.name
   diagnostics         = module.logging.diagnostics
   tags                = local.tags
+}
+
+module "storage" {
+  source                = "../../../modules/storage"
+  name                  = "hojingpt-${local.env}"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  location              = data.azurerm_resource_group.main.location
+  diagnostics           = module.logging.diagnostics
+  backup_retention_days = 1
+  tags                  = local.tags
+
+  network = {
+    subnet_id = module.network.subnet_app.id
+    allow_ips = local.allow_ips
+  }
+}
+
+resource "azurerm_private_dns_zone" "search" {
+  name                = "privatelink.search.windows.net"
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = local.tags
+}
+
+locals {
+  search_private_endpoint = {
+    subnet_id   = module.network.subnet_app.id
+    location    = data.azurerm_resource_group.main.location
+    dns_zone_id = azurerm_private_dns_zone.search.id
+  }
+}
+
+module "search" {
+  for_each = {
+    "001m" = {
+      sku              = "standard",
+      replica_count    = 2,
+      partition_count  = 1,
+      private_endpoint = local.search_private_endpoint
+    }
+  }
+  source              = "../../../modules/openai/search"
+  name                = "hojingpt-${local.env}"
+  name_suffix         = each.key
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  tags                = local.tags
+
+  sku              = each.value.sku
+  replica_count    = each.value.replica_count
+  partition_count  = each.value.partition_count
+  private_endpoint = each.value.private_endpoint
 }

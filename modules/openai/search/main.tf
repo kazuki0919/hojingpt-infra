@@ -46,6 +46,11 @@ variable "private_endpoint" {
   default = null
 }
 
+variable "public_access_enabled" {
+  type    = bool
+  default = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -59,7 +64,7 @@ resource "azurerm_search_service" "main" {
   replica_count                 = var.replica_count
   partition_count               = var.partition_count
   allowed_ips                   = var.allow_ips
-  public_network_access_enabled = true
+  public_network_access_enabled = var.public_access_enabled
   tags                          = var.tags
 }
 
@@ -83,21 +88,6 @@ resource "azurerm_private_endpoint" "main" {
     private_dns_zone_ids = [var.private_endpoint.dns_zone_id]
   }
 }
-
-# TODO: Apply it if need
-# variable "blob_storage_id" {
-#   type    = string
-#   default = null
-# }
-
-# resource "azurerm_search_shared_private_link_service" "blob" {
-#   count              = var.storage_account_id == null ? 0 : 1
-#   name               = "srch-${var.name}-pl-${var.name_suffix}"
-#   search_service_id  = azurerm_search_service.main.id
-#   subresource_name   = "blob"
-#   target_resource_id = var.blob_storage_id
-#   tags               = var.tags
-# }
 
 output "id" {
   value = azurerm_search_service.main.id
