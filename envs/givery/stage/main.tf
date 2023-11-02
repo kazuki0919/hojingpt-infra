@@ -275,7 +275,7 @@ resource "azurerm_private_dns_zone" "search" {
 module "search" {
   for_each = {
     "001" = {
-      public_access_enabled = false
+      public_access_enabled = true
       private_endpoint = {
         subnet_id   = module.network.subnet_app.id
         location    = data.azurerm_resource_group.main.location
