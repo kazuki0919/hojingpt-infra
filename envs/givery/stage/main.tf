@@ -215,6 +215,11 @@ module "monitoring" {
   container_apps = {
     "ca-hojingpt-${local.env}-001" = {}
     "ca-hojingpt-${local.env}-002" = {}
+    "ca-hojingpt-${local.env}-003" = {}
+  }
+
+  container_app_jobs = {
+    "ca-hojingpt-${local.env}-clawler" = {}
   }
 
   mysql = {

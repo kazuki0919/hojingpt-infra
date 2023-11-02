@@ -216,7 +216,7 @@ module "frontdoor" {
   container = {
     app_name        = "hojingpt-${local.env}-001"
     aoai_name       = "hojingpt-${local.env}-002"
-    blob_name       = "hojingpt-${local.env}-001" #TODO: あとで 003 にする
+    blob_name       = "hojingpt-${local.env}-003"
     subnet_id       = module.network.subnet_app.id
     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
   }
@@ -241,6 +241,11 @@ module "monitoring" {
   container_apps = {
     "ca-hojingpt-${local.env}-001" = {}
     "ca-hojingpt-${local.env}-002" = {}
+    "ca-hojingpt-${local.env}-003" = {}
+  }
+
+  container_app_jobs = {
+    "ca-hojingpt-${local.env}-clawler" = {}
   }
 
   mysql = {

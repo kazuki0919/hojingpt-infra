@@ -272,6 +272,53 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_log_erro
   }
 }
 
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "containerapp_job_log_error" {
+  for_each                = var.container_app_jobs
+  name                    = "alert-${each.key}-logs-error"
+  description             = "[ERROR] ContainerApps Job error log detected"
+  resource_group_name     = var.resource_group_name
+  location                = var.location
+  scopes                  = [var.diagnostics.log_analytics_workspace_id]
+  evaluation_frequency    = "PT5M"
+  window_duration         = "PT15M"
+  severity                = 1
+  auto_mitigation_enabled = true
+  target_resource_types   = ["Microsoft.OperationalInsights/workspaces"]
+
+  criteria {
+    query = <<-EOT
+      ContainerAppConsoleLogs_CL
+      | where TimeGenerated >= now(-5m)
+      | where Log_s has_cs "ERROR"
+      | where ContainerJobName_s == "${each.key}"
+      | project TimeGenerated, ContainerGroupName_s, Log_s
+    EOT
+
+    time_aggregation_method = "Count"
+    threshold               = 1
+    operator                = "GreaterThanOrEqual"
+
+    dimension {
+      name     = "ContainerGroupName_s"
+      operator = "Include"
+      values   = ["*"]
+    }
+
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 3
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.applogs.id]
+  }
+
+  lifecycle {
+    ignore_changes = [enabled]
+  }
+}
+
 #################################################################################
 # Azure Monitor Alert: MySQL
 #################################################################################

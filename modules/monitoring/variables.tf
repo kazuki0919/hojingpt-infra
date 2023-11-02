@@ -20,6 +20,12 @@ variable "container_apps" {
     max_cpu = optional(number, 10)
     max_mem = optional(number, 2)
   }))
+  default = {}
+}
+
+variable "container_app_jobs" {
+  type    = map(object({}))
+  default = {}
 }
 
 variable "frontdoor" {
