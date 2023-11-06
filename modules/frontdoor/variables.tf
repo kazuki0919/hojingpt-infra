@@ -10,14 +10,20 @@ variable "name" {
   type = string
 }
 
+variable "profile_id" {
+  type    = string
+  default = null
+}
+
 variable "container" {
   type = object({
-    app_name        = string
+    app_name        = optional(string, null)
     aoai_name       = optional(string, null)
     blob_name       = optional(string, null)
-    subnet_id       = string
-    lb_frontend_ids = list(string)
+    subnet_id       = optional(string, null)
+    lb_frontend_ids = optional(list(string), [])
   })
+  default = {}
 }
 
 variable "custom_domains" {
@@ -38,6 +44,16 @@ variable "response_timeout_seconds" {
   default = 240
 }
 
+variable "default_rule_set_name" {
+  type    = string
+  default = "DefaultRuleSet"
+}
+
+variable "waf_enabled" {
+  type    = bool
+  default = true
+}
+
 variable "waf_mode" {
   type        = string
   default     = "Detection"
@@ -54,6 +70,7 @@ variable "diagnostics" {
     log_analytics_workspace_id = string
     storage_account_id         = string
   })
+  default = null
 }
 
 variable "tags" {

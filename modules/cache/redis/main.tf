@@ -1,17 +1,19 @@
 resource "azurerm_private_dns_zone" "main" {
+  count               = var.private_dns_zone == null ? 1 : 0
   name                = "privatelink.redis.cache.windows.net"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   name                  = "redis-${var.name}-001"
-  private_dns_zone_name = azurerm_private_dns_zone.main.name
+  private_dns_zone_name = var.private_dns_zone == null ? azurerm_private_dns_zone.main.0.name : var.private_dns_zone.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = var.network.vnet_id
   tags                  = var.tags
 }
 
 resource "azurerm_storage_account" "persistence" {
+  count                           = var.persistence_storage_creation ? 1 : 0
   name                            = "st${replace(var.name, "-", "")}redis"
   resource_group_name             = var.resource_group_name
   location                        = var.location
@@ -49,13 +51,13 @@ resource "azurerm_redis_cache" "main" {
     maxmemory_policy                = var.maxmemory_policy
 
     aof_backup_enabled              = var.aof_enabled
-    aof_storage_connection_string_0 = var.aof_enabled == true ? azurerm_storage_account.persistence.primary_connection_string : null
+    aof_storage_connection_string_0 = var.aof_enabled == true ? azurerm_storage_account.persistence.0.primary_connection_string : null
     aof_storage_connection_string_1 = null
 
     rdb_backup_enabled            = var.rdb == null ? null : true
     rdb_backup_frequency          = var.rdb == null ? null : var.rdb.backup_frequency
     rdb_backup_max_snapshot_count = var.rdb == null ? null : var.rdb.backup_max_snapshot_count
-    rdb_storage_connection_string = var.rdb == null ? null : azurerm_storage_account.persistence.primary_connection_string
+    rdb_storage_connection_string = var.rdb == null ? null : azurerm_storage_account.persistence.0.primary_connection_string
   }
 
   dynamic "patch_schedule" {
@@ -84,7 +86,7 @@ resource "azurerm_private_endpoint" "main" {
 
   private_dns_zone_group {
     name                 = "default"
-    private_dns_zone_ids = [azurerm_private_dns_zone.main.id]
+    private_dns_zone_ids = [var.private_dns_zone == null ? azurerm_private_dns_zone.main.0.id : var.private_dns_zone.id]
   }
 
   private_service_connection {

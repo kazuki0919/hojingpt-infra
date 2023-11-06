@@ -1,9 +1,11 @@
 data "azurerm_container_app" "app" {
+  count               = var.container.app_name == null ? 0 : 1
   name                = "ca-${var.container.app_name}"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_private_link_service" "app" {
+  count                                       = var.container.app_name == null ? 0 : 1
   name                                        = "pl-${var.container.app_name}"
   location                                    = var.location
   resource_group_name                         = var.resource_group_name
@@ -19,6 +21,7 @@ resource "azurerm_private_link_service" "app" {
 }
 
 resource "azurerm_cdn_frontdoor_profile" "main" {
+  count                    = var.profile_id == null ? 1 : 0
   name                     = "afd-${var.name}"
   resource_group_name      = var.resource_group_name
   sku_name                 = var.sku_name
@@ -26,14 +29,18 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
   tags                     = var.tags
 }
 
+locals {
+  profile_id = var.profile_id == null ? azurerm_cdn_frontdoor_profile.main.0.id : var.profile_id
+}
+
 resource "azurerm_cdn_frontdoor_endpoint" "main" {
   name                     = "fde-${var.name}"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  cdn_frontdoor_profile_id = local.profile_id
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "main" {
   name                     = "fes-${var.name}-001"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  cdn_frontdoor_profile_id = local.profile_id
   session_affinity_enabled = false
 
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 0
@@ -46,21 +53,22 @@ resource "azurerm_cdn_frontdoor_origin_group" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "app" {
+  count                         = var.container.app_name == null ? 0 : 1
   name                          = "fdo-${var.name}-001"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.main.id
 
   enabled                        = true
-  host_name                      = data.azurerm_container_app.app.ingress.0.fqdn
+  host_name                      = data.azurerm_container_app.app.0.ingress.0.fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = data.azurerm_container_app.app.ingress.0.fqdn
+  origin_host_header             = data.azurerm_container_app.app.0.ingress.0.fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
 
   private_link {
     location               = var.location
-    private_link_target_id = azurerm_private_link_service.app.id
+    private_link_target_id = azurerm_private_link_service.app.0.id
     request_message        = "frontdoor"
   }
 }
@@ -68,7 +76,7 @@ resource "azurerm_cdn_frontdoor_origin" "app" {
 resource "azurerm_cdn_frontdoor_custom_domain" "main" {
   for_each                 = var.custom_domains
   name                     = each.key
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  cdn_frontdoor_profile_id = local.profile_id
   dns_zone_id              = each.value.dns_zone_id
   host_name                = each.value.host_name
 
@@ -83,8 +91,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "main" {
-  name                     = "DefaultRuleSet"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  name                     = var.default_rule_set_name
+  cdn_frontdoor_profile_id = local.profile_id
 }
 
 resource "azurerm_cdn_frontdoor_route" "main" {
@@ -113,6 +121,7 @@ resource "azurerm_cdn_frontdoor_route" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
+  count               = var.waf_enabled ? 1 : 0
   name                = "waffd${replace(var.name, "-", "")}"
   resource_group_name = var.resource_group_name
   sku_name            = var.sku_name
@@ -158,12 +167,13 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main" {
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "main" {
+  count                    = var.waf_enabled ? 1 : 0
   name                     = "waf-${var.name}-001"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  cdn_frontdoor_profile_id = local.profile_id
 
   security_policies {
     firewall {
-      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.main.id
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.main.0.id
 
       association {
         domain {
@@ -184,8 +194,9 @@ resource "azurerm_cdn_frontdoor_security_policy" "main" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "main" {
+  count              = var.diagnostics == null ? 0 : 1
   name               = "afd-${var.name}-logs-001"
-  target_resource_id = azurerm_cdn_frontdoor_profile.main.id
+  target_resource_id = local.profile_id
 
   storage_account_id         = var.diagnostics.storage_account_id
   log_analytics_workspace_id = var.diagnostics.log_analytics_workspace_id

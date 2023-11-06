@@ -73,6 +73,14 @@ variable "maintenance" {
   default = null
 }
 
+variable "private_dns_zone" {
+  type = object({
+    name = string
+    id   = string
+  })
+  default = null
+}
+
 variable "diagnostics" {
   type = object({
     log_analytics_workspace_id = string

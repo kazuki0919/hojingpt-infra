@@ -66,6 +66,11 @@ variable "maxmemory_policy" {
   default = "volatile-lru"
 }
 
+variable "persistence_storage_creation" {
+  type    = bool
+  default = true
+}
+
 variable "rdb" {
   type = object({
     backup_frequency          = number
@@ -83,6 +88,14 @@ variable "maintenance" {
   type = object({
     day_of_week    = string
     start_hour_utc = number
+  })
+  default = null
+}
+
+variable "private_dns_zone" {
+  type = object({
+    name = string
+    id   = string
   })
   default = null
 }

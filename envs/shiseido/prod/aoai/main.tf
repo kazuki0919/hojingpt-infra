@@ -1,6 +1,6 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-shiseidogpt-prod"
+    resource_group_name  = "rgjpezzzzzz10041"
     storage_account_name = "stshiseidogpttfprod"
     container_name       = "tfstate-aoai"
     key                  = "terraform.tfstate"
@@ -9,6 +9,10 @@ terraform {
 
 provider "azurerm" {
   features {}
+
+  # HACK: Workaround for per-subscription resource provider registration errors
+  # see: https://blog.shibayan.jp/entry/20210107/1609948542
+  skip_provider_registration = true
 }
 
 locals {
@@ -18,6 +22,17 @@ locals {
   tags = {
     service = local.name
     env     = local.env
+    created = "givery"
+  }
+
+  vnet = {
+    name = "vnjpeazrxxx00001"
+    id   = "/subscriptions/cb4c9bde-f029-45e3-be3f-97359462fbcd/resourceGroups/rgjpexxxxxx00001/providers/Microsoft.Network/virtualNetworks/vnjpeazrxxx00001"
+    subnets = {
+      app = {
+        id = "/subscriptions/cb4c9bde-f029-45e3-be3f-97359462fbcd/resourceGroups/rgjpexxxxxx00001/providers/Microsoft.Network/virtualNetworks/vnjpeazrxxx00001/subnets/snjpeintins00014"
+      }
+    }
   }
 
   gpt35 = {
@@ -61,15 +76,15 @@ locals {
   cognitive_services = {
     "001" = {
       location    = "eastus"
-      deployments = merge(local.gpt35, local.gpt4, local.ada002)
+      deployments = merge(local.gpt35, /*local.gpt4,*/ local.ada002)  #gpt4選べない
     }
     "002" = {
       location    = "francecentral"
-      deployments = merge(local.gpt35, local.gpt4, local.ada002)
+      deployments = merge(/*local.gpt35,*/ local.gpt4, local.ada002) #gpt35-turbo-16k残量ない
     }
     "003" = {
       location    = "uksouth"
-      deployments = merge(local.gpt35, local.ada002)
+      deployments = merge(/*local.gpt35,*/local.gpt4, local.ada002)
     }
     "004" = {
       location    = "northcentralus"
@@ -82,6 +97,7 @@ locals {
     "006" = {
       location    = "eastus2"
       deployments = merge(local.gpt35, local.ada002)
+      deployments = {}
     }
     "007" = {
       location    = "canadaeast"
@@ -103,18 +119,7 @@ locals {
 }
 
 data "azurerm_resource_group" "main" {
-  name = "rg-${local.name}-${local.env}"
-}
-
-data "azurerm_virtual_network" "main" {
-  name                = "vnet-${local.name}-${local.env}-001"
-  resource_group_name = data.azurerm_resource_group.main.name
-}
-
-data "azurerm_subnet" "main" {
-  name                 = "snet-${local.name}-${local.env}-001"
-  virtual_network_name = data.azurerm_virtual_network.main.name
-  resource_group_name  = data.azurerm_resource_group.main.name
+  name = "rgjpezzzzzz10041"
 }
 
 data "azurerm_log_analytics_workspace" "diagnostics" {
@@ -127,20 +132,20 @@ data "azurerm_storage_account" "diagnostics" {
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
-resource "azurerm_private_dns_zone" "main" {
+data "azurerm_private_dns_zone" "main" {
   name                = "privatelink.openai.azure.com"
   resource_group_name = data.azurerm_resource_group.main.name
-  tags                = local.tags
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "main" {
-  name                  = "link-${local.name}-${local.env}-cog-001"
-  resource_group_name   = data.azurerm_resource_group.main.name
-  virtual_network_id    = data.azurerm_virtual_network.main.id
-  private_dns_zone_name = azurerm_private_dns_zone.main.name
-  registration_enabled  = false
-  tags                  = local.tags
-}
+# TODO: 作成権限がないので後で作成する
+# resource "azurerm_private_dns_zone_virtual_network_link" "main" {
+#   name                  = "link-${local.name}-${local.env}-cog-001"
+#   resource_group_name   = data.azurerm_resource_group.main.name
+#   virtual_network_id    = local.vnet.id
+#   private_dns_zone_name = data.azurerm_private_dns_zone.main.name
+#   registration_enabled  = false
+#   tags                  = local.tags
+# }
 
 module "cognitive_service" {
   for_each            = local.cognitive_services
@@ -152,9 +157,9 @@ module "cognitive_service" {
   deployments         = each.value.deployments
 
   private_endpoint = {
-    subnet_id   = data.azurerm_subnet.main.id
-    location    = data.azurerm_virtual_network.main.location
-    dns_zone_id = azurerm_private_dns_zone.main.id
+    subnet_id   = local.vnet.subnets.app.id
+    location    = data.azurerm_resource_group.main.location
+    dns_zone_id = data.azurerm_private_dns_zone.main.id
   }
 
   diagnostics = {

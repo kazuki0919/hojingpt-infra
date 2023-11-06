@@ -7,7 +7,7 @@ data "azurerm_container_app" "aoai" {
 resource "azurerm_cdn_frontdoor_origin_group" "aoai" {
   count                    = var.container.aoai_name == null ? 0 : 1
   name                     = "fes-${var.name}-002"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.main.id
+  cdn_frontdoor_profile_id = local.profile_id
   session_affinity_enabled = false
 
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 0
@@ -35,7 +35,7 @@ resource "azurerm_cdn_frontdoor_origin" "aoai" {
 
   private_link {
     location               = var.location
-    private_link_target_id = azurerm_private_link_service.app.id
+    private_link_target_id = azurerm_private_link_service.app.0.id
     request_message        = "frontdoor"
   }
 }

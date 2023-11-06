@@ -4,6 +4,7 @@ data "azurerm_key_vault_secret" "password" {
 }
 
 resource "azurerm_private_dns_zone" "main" {
+  count               = var.private_dns_zone == null ? 1 : 0
   name                = "mysql-${var.name}-001.private.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
   tags                = var.tags
@@ -11,7 +12,7 @@ resource "azurerm_private_dns_zone" "main" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   name                  = "mysql-${var.name}-001"
-  private_dns_zone_name = azurerm_private_dns_zone.main.name
+  private_dns_zone_name = var.private_dns_zone == null ? azurerm_private_dns_zone.main.0.name : var.private_dns_zone.name
   resource_group_name   = var.resource_group_name
   virtual_network_id    = var.network.vnet_id
   tags                  = var.tags
@@ -25,7 +26,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   administrator_password = data.azurerm_key_vault_secret.password.value
   backup_retention_days  = var.backup_retention_days
   delegated_subnet_id    = var.network.subnet_id
-  private_dns_zone_id    = azurerm_private_dns_zone.main.id
+  private_dns_zone_id    = var.private_dns_zone == null ? azurerm_private_dns_zone.main.0.id : var.private_dns_zone.id
   sku_name               = var.sku_name
   version                = var.db_version
   zone                   = var.zone
