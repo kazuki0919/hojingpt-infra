@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-aozoragpt-stage"
-    storage_account_name = "staozoragpttfstage"
+    resource_group_name  = "rg-fukuibkgpt-stage"
+    storage_account_name = "stfukuibkgpttfstage"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
   }
@@ -13,8 +13,8 @@ provider "azurerm" {
 
 locals {
   env     = "stage"
-  name    = "aozoragpt"
-  domains = ["staging.aozorabank.hojingpt.com"]
+  name    = "fukuibkgpt"
+  domains = ["staging.fukuibank.hojingpt.com"]
 
   allow_ips = [
     "222.230.117.190", # yusuke.yoda's home IP. To be removed at a later.
@@ -175,35 +175,35 @@ module "app" {
   tags                = local.tags
 }
 
-data "azurerm_lb" "kubernetes_internal" {
-  name                = "kubernetes-internal"
-  resource_group_name = "MC_mangomushroom-d7820cf0-rg_mangomushroom-d7820cf0_japaneast"
-}
+# data "azurerm_lb" "kubernetes_internal" {
+#   name                = "kubernetes-internal"
+#   resource_group_name = "MC_mangomushroom-d7820cf0-rg_mangomushroom-d7820cf0_japaneast"
+# }
 
-module "frontdoor" {
-  source              = "../../../modules/frontdoor"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "${local.name}-${local.env}-jpeast"
+# module "frontdoor" {
+#   source              = "../../../modules/frontdoor"
+#   resource_group_name = data.azurerm_resource_group.main.name
+#   location            = data.azurerm_resource_group.main.location
+#   name                = "${local.name}-${local.env}-jpeast"
 
-  container = {
-    app_name        = "${local.name}-${local.env}-001"
-    subnet_id       = module.network.subnet_app.id
-    lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
-  }
+#   container = {
+#     app_name        = "${local.name}-${local.env}-001"
+#     subnet_id       = module.network.subnet_app.id
+#     lb_frontend_ids = data.azurerm_lb.kubernetes_internal.frontend_ip_configuration.*.id
+#   }
 
-  custom_domains = {
-    for domain in local.domains : "${replace(domain, ".", "-")}" => {
-      host_name = domain
-    }
-  }
+#   custom_domains = {
+#     for domain in local.domains : "${replace(domain, ".", "-")}" => {
+#       host_name = domain
+#     }
+#   }
 
-  waf_mode        = length(local.allow_cidrs_for_waf) > 0 ? "Prevention" : "Detection"
-  waf_allow_cidrs = local.allow_cidrs_for_waf
+#   waf_mode        = length(local.allow_cidrs_for_waf) > 0 ? "Prevention" : "Detection"
+#   waf_allow_cidrs = local.allow_cidrs_for_waf
 
-  diagnostics = module.logging.diagnostics
-  tags        = local.tags
-}
+#   diagnostics = module.logging.diagnostics
+#   tags        = local.tags
+# }
 
 module "monitoring" {
   source              = "../../../modules/monitoring"
@@ -213,7 +213,7 @@ module "monitoring" {
   diagnostics         = module.logging.diagnostics
 
   container_apps = {
-    "ca-${local.name}-${local.env}-001" = {}
+    # "ca-${local.name}-${local.env}-001" = {}
   }
 
   mysql = {
@@ -226,12 +226,12 @@ module "monitoring" {
 
   logicapp_metrics = {
     name         = "la-${local.name}-${local.env}-metrics-alert"
-    callback_url = "https://prod-06.japaneast.logic.azure.com:443/workflows/86996c9c187048a48aa15b0ef2a14aa3/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Oi6zwxFRECxbNO_GimuEQrBtzRJBGzotyHQ0LImZ5hw"
+    callback_url = ""
   }
 
   logicapp_applogs = {
     name         = "la-${local.name}-${local.env}-applogs-alert"
-    callback_url = "https://prod-07.japaneast.logic.azure.com:443/workflows/e13637f5d4354f02b9a2c43f71a53db1/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=L2qgS5TASfyitgGnjuEdfRKzS5cyhiCtoF0Q0wMzktE"
+    callback_url = ""
   }
 
   tags = local.tags

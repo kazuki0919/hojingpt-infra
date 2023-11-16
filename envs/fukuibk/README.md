@@ -1,7 +1,7 @@
 # 福井銀行
 
 - AOAI には日本リージョンのみを使用する。OpenAI は使わない
-- Subsctiption: `xgai-aozoragpt-001`
+- Subsctiption: `xgai-fukuibkgpt-001`
 
 # Bastion
 
