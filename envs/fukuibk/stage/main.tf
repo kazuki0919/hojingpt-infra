@@ -30,7 +30,7 @@ locals {
   ]
 
   users = {
-    "22fa63f9-94d8-4a82-a7b1-e9c5e8b43e9b" = "yusuke.yoda@givery.onmicrosoft.com"
+  
   }
 
   tags = {
@@ -237,13 +237,6 @@ module "monitoring" {
   tags = local.tags
 }
 
-module "mail" {
-  source              = "../../../modules/mail"
-  name                = "${local.name}-${local.env}"
-  resource_group_name = data.azurerm_resource_group.main.name
-  diagnostics         = module.logging.diagnostics
-  tags                = local.tags
-}
 
 # TODO
 # module "storage" {

@@ -92,16 +92,16 @@ module "security" {
   tags        = local.tags
 }
 
-module "bastion" {
+ module "bastion" {
   source              = "../../../modules/bastion"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  name                = "${local.name}-${local.env}"
-  ssh_key             = "ssh-${local.name}-${local.env}-001"
-  bastion_subnet_id   = module.network.subnet_bastion.id
-  vm_subnet_id        = module.network.subnet_app.id
-  diagnostics         = module.logging.diagnostics
-  tags                = local.tags
+   resource_group_name = data.azurerm_resource_group.main.name
+   location            = data.azurerm_resource_group.main.location
+   name                = "${local.name}-${local.env}"
+   ssh_key             = "ssh-${local.name}-${local.env}-001"
+   bastion_subnet_id   = module.network.subnet_bastion.id
+   vm_subnet_id        = module.network.subnet_app.id
+   diagnostics         = module.logging.diagnostics
+   tags                = local.tags
 }
 
 # TODO: Build if need
@@ -226,12 +226,12 @@ module "monitoring" {
 
   logicapp_metrics = {
     name         = "la-${local.name}-${local.env}-metrics-alert"
-    callback_url = ""
+    callback_url = "https://prod-27.japaneast.logic.azure.com:443/workflows/47b47d47396a4526ab0ac04868280100/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=opYbAivSJOraq5faMNFPr4I4_HSF_2l0TxpcvfpkNMA"
   }
 
   logicapp_applogs = {
     name         = "la-${local.name}-${local.env}-applogs-alert"
-    callback_url = ""
+    callback_url = "https://prod-06.japaneast.logic.azure.com:443/workflows/99e69e811a4d4ec08a3ed3f095f21e5f/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oZtTv7DoiZk7X9yC-SkORZKeZ3RVCOw5lnh6NFatd7I"
   }
 
   tags = local.tags

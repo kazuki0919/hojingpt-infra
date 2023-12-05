@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-aozoragpt-stage"
-    storage_account_name = "staozoragpttfstage"
+    resource_group_name  = "rg-fukuibkgpt-stage"
+    storage_account_name = "stfukuibkgpttfstage"
     container_name       = "tfstate-aoai"
     key                  = "terraform.tfstate"
   }
@@ -13,7 +13,7 @@ provider "azurerm" {
 
 locals {
   env  = "stage"
-  name = "aozoragpt"
+  name = "fukuibkgpt"
 
   tags = {
     service = local.name

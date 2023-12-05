@@ -14,10 +14,10 @@ Do not use this key for anything other than recovery, and normally register each
 export ENV=stage|prod
 
 # Download
-az keyvault secret download --vault-name kv-aozoragpt-${ENV} --name ssh-aozoragpt-${ENV}-001 --file "~/.ssh/ssh-aozoragpt-${ENV}-001.pem"
+az keyvault secret download --vault-name kv-fukuibkgpt-${ENV} --name fukuibkgpt-${ENV}-001 --file "~/.ssh/ssh-fukuibkgpt-${ENV}-001.pem"
 
 # Upload: Note that pem files containing newline codes cannot be stored properly without cli.
-az keyvault secret set --vault-name kv-aozoragpt-${ENV} --name ssh-aozoragpt-${ENV}-001 --file "~/.ssh/ssh-aozoragpt-${ENV}-001.pem"
+az keyvault secret set --vault-name kv-fukuibkgpt-${ENV} --name ssh-aozoragpt-${ENV}-001 --file "~/.ssh/ssh-aozoragpt-${ENV}-001.pem"
 ```
 
 ### How to connect
